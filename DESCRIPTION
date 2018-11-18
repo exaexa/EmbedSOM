@@ -1,0 +1,18 @@
+Package: EmbedSOM
+Version: 1.0
+Date: 2018-09-03
+Title: Fast embedding of datapoints guided by a self-organizing map.
+Authors@R: c(person("Mirek", "Kratochvil",
+                    role = c("aut", "cre"),
+                    email = "exa.exa@gmail.com"))
+Author: Mirek Kratochvil
+Maintainer: Mirek Kratochvil <exa.exa@gmail.com>
+Depends:
+    R (>= 3.2)
+Description: Provides a nice mapping of multidimensional points onto a 2D space
+    defined by a self-organizing map. Designed to work with FlowSOM.
+License: GPL (>= 3)
+LazyData: true
+URL: https://gitea.blesmrt.net/exa/EmbedSOM
+Encoding: UTF-8
+RoxygenNote: 6.1.0
