@@ -21,6 +21,8 @@ Quick way to get something out:
 	par(mfrow=c(2,1))
 	EmbedSOM::PlotEmbed(e, fsom=fs)
 
+(The FCS file can be downloaded from EmbedSOM website at http://bioinfo.uochb.cas.cz/embedsom/)
+
 ## EmbedSOM parameters
 
 - `n`: how many nearest SOM vertices of the cell are considered as significant for the approximation (distance of the `n`-th neighbor is taken as `sigma` of a normal distributon of a relevance measure of SOM neighbors)
