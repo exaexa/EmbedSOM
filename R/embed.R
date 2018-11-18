@@ -18,14 +18,16 @@
 #' @param fsom FlowSom object with a built SOM
 #' @param data Data matrix with points that optionally overrides the one from `fsom$data`
 #' @param map Map object in FlowSOM format, to optionally override `fsom$map`
-#' @param perplexity How many SOM neighbors to take seriously
-#' @param neighbors How many SOM neighbors to take into the whole computation
+#' @param n How many SOM neighbors to take seriously
+#' @param k How many SOM neighbors to take into the whole computation
+#' @param adjust How much non-local information to remove (parameter a)
+#' @param importance Importance of dimensions that was used to train the SOM
 #' @return matrix with 2-D coordinates of the embedded cels
 #'
 #' @useDynLib EmbedSOM, .registration = TRUE
 #' @export
 
-EmbedSOM <- function(fsom=NULL, perplexity=NULL, neighbors=NULL, adjust=NULL, data=NULL, map=NULL, importance=NULL) {
+EmbedSOM <- function(fsom=NULL, n=NULL, k=NULL, adjust=NULL, data=NULL, map=NULL, importance=NULL) {
   #TODO validate the sizes of data, colsUsed and codes.
 
   if(is.null(map)) {
@@ -40,18 +42,18 @@ EmbedSOM <- function(fsom=NULL, perplexity=NULL, neighbors=NULL, adjust=NULL, da
     } else data <- fsom$data
   }
 
-  if(is.null(perplexity) && is.null(neighbors)) {
-    neighbors <- as.integer(2*sqrt(map$xdim*map$ydim))
-    perplexity <- as.integer(3*sqrt(neighbors))+1
-  } else if(is.null(neighbors) || is.null(perplexity)) {
-    stop("Please specify both perplexity and neighbors!")
+  if(is.null(n) && is.null(k)) {
+    k <- as.integer(2*sqrt(map$xdim*map$ydim))
+    n <- as.integer(3*sqrt(k))+1
+  } else if(is.null(k) || is.null(n)) {
+    stop("Please specify both n and k!")
   }
 
   if(is.null(adjust)) {
     adjust <- 1
   }
 
-  n <- nrow(data)
+  ndata <- nrow(data)
   colsUsed <- map$colsUsed
   if(is.null(colsUsed)) colsUsed <- (1:ncol(data))
   dim <- length(colsUsed)
@@ -59,19 +61,19 @@ EmbedSOM <- function(fsom=NULL, perplexity=NULL, neighbors=NULL, adjust=NULL, da
   x <- map$xdim
   y <- map$ydim
 
-  if (perplexity<1) {
+  if (n<1) {
     stop("Perplexity should be at least 1!")
   }
 
-  if(perplexity>neighbors) {
+  if(n>k) {
     stop("Perplexity too high!")
   }
     
-  if (neighbors<3) {
+  if (k<3) {
     stop("Use at least 3 neighbors for sane results!")
   }
 
-  if (neighbors>(x*y)) {
+  if (k>(x*y)) {
     stop("Too many neighbors!")
   }
 
@@ -80,8 +82,8 @@ EmbedSOM <- function(fsom=NULL, perplexity=NULL, neighbors=NULL, adjust=NULL, da
   }
 
   #convert to indexes
-  perplexity <- perplexity-1
-  neighbors <- neighbors-1
+  n <- n-1
+  k <- k-1
 
   if(!is.null(importance))
   	points <- t(data[,colsUsed] * rep(importance, each=nrow(data)))
@@ -96,11 +98,11 @@ EmbedSOM <- function(fsom=NULL, perplexity=NULL, neighbors=NULL, adjust=NULL, da
   embedding <- matrix(0, nrow=nrow(data), ncol=2)
 
   res <- .C("C_embedSOM",
-    pn=as.integer(n),
+    pn=as.integer(ndata),
     pdim=as.integer(dim),
 
-    pperp=as.integer(perplexity),
-    pneighbors=as.integer(neighbors),
+    pperp=as.integer(n),
+    pneighbors=as.integer(k),
     padjust=as.single(adjust),
     
     # the function now relies on the grid being arranged
