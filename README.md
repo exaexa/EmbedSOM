@@ -7,7 +7,7 @@ Fast embedding for flow/mass cytometry data. Best used with FlowSOM (https://git
 
 Use `devtools`:
 
-	devtools::install.github('exaexa/EmbedSOM')
+	devtools::install_github('exaexa/EmbedSOM')
 
 ## Usage
 
