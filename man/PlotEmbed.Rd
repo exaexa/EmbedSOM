@@ -6,8 +6,9 @@
 \usage{
 PlotEmbed(embed, value = 0, red = 0, green = 0, blue = 0,
   fr = PlotId, fg = PlotId, fb = PlotId, fv = PlotId, powr = 0,
-  powg = 0, powb = 0, powv = 0, limit = 0.1, pch = ".",
-  alpha = 0.5, cex = 1, exlim = 1, fsom, data, xdim, ydim, col)
+  powg = 0, powb = 0, powv = 0, nbin = 256, maxDens = NULL,
+  limit = 0.01, pch = ".", alpha = NULL, cex = 1, exlim = 1,
+  fsom, data, xdim, ydim, col)
 }
 \arguments{
 \item{embed}{The embedding from EmbedSOM}

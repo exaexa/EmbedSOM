@@ -4,19 +4,23 @@
 \alias{EmbedSOM}
 \title{Process the cells with SOM into a nice embedding}
 \usage{
-EmbedSOM(fsom = NULL, perplexity = NULL, neighbors = NULL,
-  adjust = NULL, data = NULL, map = NULL, importance = NULL)
+EmbedSOM(fsom = NULL, n = NULL, k = NULL, adjust = NULL,
+  data = NULL, map = NULL, importance = NULL)
 }
 \arguments{
 \item{fsom}{FlowSom object with a built SOM}
 
-\item{perplexity}{How many SOM neighbors to take seriously}
+\item{n}{How many SOM neighbors to take seriously}
 
-\item{neighbors}{How many SOM neighbors to take into the whole computation}
+\item{k}{How many SOM neighbors to take into the whole computation}
+
+\item{adjust}{How much non-local information to remove (parameter a)}
 
 \item{data}{Data matrix with points that optionally overrides the one from `fsom$data`}
 
 \item{map}{Map object in FlowSOM format, to optionally override `fsom$map`}
+
+\item{importance}{Importance of dimensions that was used to train the SOM}
 }
 \value{
 matrix with 2-D coordinates of the embedded cels
