@@ -13,6 +13,6 @@ Description: Provides a nice mapping of multidimensional points onto a 2D space
     defined by a self-organizing map. Designed to work with FlowSOM.
 License: GPL (>= 3)
 LazyData: true
-URL: https://gitea.blesmrt.net/exa/EmbedSOM
+URL: https://bioinfo.uochb.cas.cz/embedsom
 Encoding: UTF-8
 RoxygenNote: 6.1.1
