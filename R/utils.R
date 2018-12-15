@@ -23,6 +23,14 @@ NormalizeColor <- function(data, low=0, high=1, pow=0) {
   ps
 }
 
+ExpressionPalette <- function(n, alpha=1) {
+	# proudly taken from colorBrewer (thanks!)
+	pal <- rev(c("#A50026","#D73027","#F46D43","#FDAE61","#FEE090","#FFFFBF","#E0F3F8","#ABD9E9","#74ADD1","#4575B4","#313695"))
+
+	grDevices::adjustcolor(alpha=alpha,
+		col=grDevices::colorRampPalette(pal, space='Lab', interpolate='linear')(n))
+}
+
 #' Identity on whatever
 PlotId <- function(x){x}
 
@@ -71,9 +79,10 @@ PlotEmbed <- function(embed,
       dens <- log(dens+1)
       pal <- cut(dens, length(dens), labels=F)
       n <- length(dens)
-      col <- hsv(h=.9-.85*(1:n)/n,
-                 v=((0:(n-1))/(n-1)),
-		 alpha=alpha)[pal]
+      #col <- hsv(h=.9-.85*(1:n)/n,
+      #           v=((0:(n-1))/(n-1)),
+      #           alpha=alpha)[pal]
+      col <- ExpressionPalette(256, alpha=alpha)[1+as.integer(255*pal/n)]
     } else if(value==0) {
       if(is.null(alpha)) alpha <- 0.5
       col <- rgb(
@@ -83,7 +92,7 @@ PlotEmbed <- function(embed,
       alpha)
     } else {
       if(is.null(alpha)) alpha <- 0.5
-      col <- grDevices::adjustcolor(colorRamps::matlab.like2(256)[1+255*NormalizeColor(fv(data[,value]), limit, 1-limit, powv)], alpha=alpha)
+      col <- ExpressionPalette(256,alpha=alpha)[1+255*NormalizeColor(fv(data[,value]), limit, 1-limit, powv)]
     }
   }
 
