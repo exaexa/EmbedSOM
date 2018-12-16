@@ -181,7 +181,7 @@ extern "C" void C_embedSOM (int* pn,
 
 				const float diag = s * hx * hy * ihpxy;
 				const float rhsc =
-				  s * (scalar * sqrt (ihpxy / sqdist) +
+				  s * (scalar * sqrt (ihpxy) / sqdist +
 				       (hx * ix + hy * iy) * ihpxy);
 
 				mtx[0] += s * hx * hx * ihpxy;
