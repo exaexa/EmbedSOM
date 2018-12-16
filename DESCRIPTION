@@ -8,7 +8,7 @@ Authors@R: c(person("Mirek", "Kratochvil",
 Author: Mirek Kratochvil
 Maintainer: Mirek Kratochvil <exa.exa@gmail.com>
 Depends:
-    R (>= 3.2), colorRamps
+    R (>= 3.2)
 Description: Provides a nice mapping of multidimensional points onto a 2D space
     defined by a self-organizing map. Designed to work with FlowSOM.
 License: GPL (>= 3)
