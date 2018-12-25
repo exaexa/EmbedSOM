@@ -23,6 +23,8 @@ NormalizeColor <- function(data, low=0, high=1, pow=0) {
   ps
 }
 
+#' Marker expression palette generator defined from ColorBrewer's RdYlBu
+#' @export
 ExpressionPalette <- function(n, alpha=1) {
 	# proudly taken from colorBrewer (thanks!)
 	pal <- rev(c("#A50026","#D73027","#F46D43","#FDAE61","#FEE090","#FFFFBF","#E0F3F8","#ABD9E9","#74ADD1","#4575B4","#313695"))
