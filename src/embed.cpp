@@ -23,6 +23,7 @@
 using namespace std;
 
 static const float koho_gravity = 0.000000001; // required tiny epsilon
+static const float min_boost = 0.001;
 
 static inline float sqrf (float n)
 {
@@ -70,7 +71,7 @@ static void heap_down (dist_id* heap, size_t start, size_t lim)
 
 extern "C" void C_embedSOM (int* pn,
                             int* pdim,
-                            int* pperp,
+                            float* pboost,
                             int* pneighbors,
                             float* padjust,
                             int* pxdim,
@@ -79,14 +80,14 @@ extern "C" void C_embedSOM (int* pn,
                             float* koho,
                             float* embedding)
 {
-	size_t n = *pn, indim = *pdim, perp = *pperp, topn = *pneighbors,
-	       xdim = *pxdim, ydim = *pydim;
+	size_t n = *pn, indim = *pdim, topn = *pneighbors, xdim = *pxdim,
+	       ydim = *pydim;
+	float boost = *pboost;
 
 	size_t i, j, k;
 
 	if (topn > xdim * ydim) topn = xdim * ydim;
-	if (perp > topn) perp = topn;
-	if (perp < 1) perp = 1;
+	if (boost < min_boost) boost = min_boost;
 
 	vector<dist_id> dists;
 	dists.resize (topn);
@@ -117,21 +118,10 @@ extern "C" void C_embedSOM (int* pn,
 			heap_down (dists.data (), 0, topn);
 		}
 
-		dist_id* perpheap = dists.data () + topn - perp;
-
-		for (i = 0; i < perp; ++i)
-			heap_down (perpheap, perp - i - 1, perp);
-
-		for (i = 0; i < topn - perp; ++i) {
-			if (dists[i].dist > perpheap->dist) continue;
-			hswap (dists[i], *perpheap);
-			heap_down (perpheap, 0, perp);
-		}
-
-		float sqsigma2 = 2 * perpheap->dist;
-
 		for (i = 0; i < topn; ++i) {
-			dists[i].dist = expf (-dists[i].dist / sqsigma2);
+			dists[i].dist = powf (
+			  1 + dists[i].dist,
+			  -float(indim > 1 ? indim - 1 : 1) / (2 * boost));
 		}
 
 		float sum = 0;
@@ -176,8 +166,7 @@ extern "C" void C_embedSOM (int* pn,
 				const float hy = jy - iy;
 				const float hpxy = hx * hx + hy * hy;
 				const float ihpxy = 1 / hpxy;
-				const float s =
-				  score / powf (hpxy, *padjust);
+				const float s = score / powf (hpxy, *padjust);
 
 				const float diag = s * hx * hy * ihpxy;
 				const float rhsc =

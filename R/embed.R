@@ -18,7 +18,7 @@
 #' @param fsom FlowSom object with a built SOM
 #' @param data Data matrix with points that optionally overrides the one from `fsom$data`
 #' @param map Map object in FlowSOM format, to optionally override `fsom$map`
-#' @param n How many SOM neighbors to take seriously
+#' @param boost How much to boost score of SOM neighbors
 #' @param k How many SOM neighbors to take into the whole computation
 #' @param adjust How much non-local information to remove (parameter a)
 #' @param importance Importance of dimensions that was used to train the SOM
@@ -27,7 +27,7 @@
 #' @useDynLib EmbedSOM, .registration = TRUE
 #' @export
 
-EmbedSOM <- function(fsom=NULL, n=NULL, k=NULL, adjust=NULL, data=NULL, map=NULL, importance=NULL) {
+EmbedSOM <- function(fsom=NULL, boost=NULL, k=NULL, adjust=NULL, data=NULL, map=NULL, importance=NULL) {
   #TODO validate the sizes of data, colsUsed and codes.
 
   if(is.null(map)) {
@@ -42,12 +42,11 @@ EmbedSOM <- function(fsom=NULL, n=NULL, k=NULL, adjust=NULL, data=NULL, map=NULL
     } else data <- fsom$data
   }
 
-  if(is.null(n) && is.null(k)) {
+  if(is.null(boost))
+    boost <- 1
+
+  if(is.null(k))
     k <- as.integer(2*sqrt(map$xdim*map$ydim))
-    n <- as.integer(3*sqrt(k))+1
-  } else if(is.null(k) || is.null(n)) {
-    stop("Please specify both n and k!")
-  }
 
   if(is.null(adjust)) {
     adjust <- 1
@@ -61,14 +60,10 @@ EmbedSOM <- function(fsom=NULL, n=NULL, k=NULL, adjust=NULL, data=NULL, map=NULL
   x <- map$xdim
   y <- map$ydim
 
-  if (n<1) {
-    stop("Perplexity should be at least 1!")
+  if (boost<=0.001) {
+    stop("Boost should be at least 0.001!")
   }
 
-  if(n>k) {
-    stop("Perplexity too high!")
-  }
-    
   if (k<3) {
     stop("Use at least 3 neighbors for sane results!")
   }
@@ -82,7 +77,6 @@ EmbedSOM <- function(fsom=NULL, n=NULL, k=NULL, adjust=NULL, data=NULL, map=NULL
   }
 
   #convert to indexes
-  n <- n-1
   k <- k-1
 
   if(!is.null(importance))
@@ -101,7 +95,7 @@ EmbedSOM <- function(fsom=NULL, n=NULL, k=NULL, adjust=NULL, data=NULL, map=NULL
     pn=as.integer(ndata),
     pdim=as.integer(dim),
 
-    pperp=as.integer(n),
+    pboost=as.single(boost),
     pneighbors=as.integer(k),
     padjust=as.single(adjust),
     
