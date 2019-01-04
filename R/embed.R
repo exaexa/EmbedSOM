@@ -27,7 +27,8 @@
 #' @useDynLib EmbedSOM, .registration = TRUE
 #' @export
 
-EmbedSOM <- function(fsom=NULL, boost=NULL, k=NULL, adjust=NULL, data=NULL, map=NULL, importance=NULL) {
+EmbedSOM <- function(fsom=NULL, boost=NULL, k=NULL, adjust=NULL,
+                     data=NULL, map=NULL, importance=NULL) {
   #TODO validate the sizes of data, colsUsed and codes.
 
   if(is.null(map)) {
@@ -43,7 +44,7 @@ EmbedSOM <- function(fsom=NULL, boost=NULL, k=NULL, adjust=NULL, data=NULL, map=
   }
 
   if(is.null(boost))
-    boost <- 1
+    boost <- 2
 
   if(is.null(k))
     k <- as.integer(2*sqrt(map$xdim*map$ydim))
