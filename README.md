@@ -25,9 +25,9 @@ Quick way to get something out:
 
 ## EmbedSOM parameters
 
-- `n`: how many nearest SOM vertices of the cell are considered as significant for the approximation (distance of the `n`-th neighbor is taken as `sigma` of a normal distributon of a relevance measure of SOM neighbors)
-- `k`: how many nearest SOM vertices to take into account at all (information from the `k+1`-th nearest SOM vertex is discarded)
-- `a`: used as a negative power for reducing the effect of non-local relevance measure on the outcome
+- `boost`: Factor for reducing the negative power that is applied to the distance from cell to a SOM vertex to obtain the score. Increase this to produce "smoother" but possibly more convoluted embedding. (This functionality was originally done by the `n` parameter which selected the width of Gaussian for estimating the scores. The results were rounder but produced more artifacts and poor separation.)
+- `k`: how many nearest SOM vertices to take into account at all (information from the `k+1`-th nearest SOM vertex is discarded). Performance depends quadratically on `k`. Increase to produce a more precise and smooth embedding. Setting between 10 and 50 is usually a good choice.
+- `adjust`: Negative power factor for reducing the effect of non-local relevance measure on the outcome. Use `0` for plain projection; values above `1` usually push cells closer to respective SOM vertex positions.
 - `fsom`: the FlowSOM object to embed
 - `map`: optional map to use (e.g. if not present in the `fsom` object, or for embedding with different map)
 - `data`: raw data matrix to be embedded (eg. if `fsom` object is not present). Must contain only the used columns, i.e. usually you want to use something like `data=myMatrix[,colsToUse]`)
