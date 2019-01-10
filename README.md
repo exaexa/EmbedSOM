@@ -84,7 +84,7 @@ First, a clustering method is needed to define the subsets. Supposing you alread
 
 After that, the metaclusters can be plotted in the embedding. Because the clustering is related to the small FlowSOM "pre-clusters" rather than cells, it is also necessary to use the information from `fs$map$mapping` for getting the cluster information to single cell level:
 
-	EmbedSOM::PlotEmbed(e, fsom=fs, col=rainbow(10, alpha=.5)[clusters[fs$map$mapping[,1]]])
+	EmbedSOM::PlotEmbed(e, fsom=fs, clust=clusters[fs$map$mapping[,1]])
 
 After you choose a metacluster in the embedding, use the color scale to find its number, then filter the cells in `fs` to the corresponding subset. This example selects the cell subset in metacluster number `5`:
 
