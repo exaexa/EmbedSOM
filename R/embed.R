@@ -77,9 +77,6 @@ EmbedSOM <- function(fsom=NULL, boost=NULL, k=NULL, adjust=NULL,
     stop("adjust must not be negative!");
   }
 
-  #convert to indexes
-  k <- k-1
-
   if(!is.null(importance))
   	points <- t(data[,colsUsed] * rep(importance, each=nrow(data)))
   else
