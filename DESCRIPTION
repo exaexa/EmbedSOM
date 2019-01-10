@@ -1,5 +1,5 @@
 Package: EmbedSOM
-Version: 1.2
+Version: 1.3
 Date: 2018-09-03
 Title: Fast embedding of datapoints guided by a self-organizing map.
 Authors@R: c(person("Mirek", "Kratochvil",
