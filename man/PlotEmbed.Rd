@@ -6,9 +6,9 @@
 \usage{
 PlotEmbed(embed, value = 0, red = 0, green = 0, blue = 0,
   fr = PlotId, fg = PlotId, fb = PlotId, fv = PlotId, powr = 0,
-  powg = 0, powb = 0, powv = 0, nbin = 256, maxDens = NULL,
-  limit = 0.01, pch = ".", alpha = NULL, cex = 1, exlim = 1,
-  fsom, data, xdim, ydim, col)
+  powg = 0, powb = 0, powv = 0, clust = NULL, nclust = 0,
+  nbin = 256, maxDens = NULL, limit = 0.01, pch = ".",
+  alpha = NULL, cex = 1, exlim = 1, fsom, data, xdim, ydim, col)
 }
 \arguments{
 \item{embed}{The embedding from EmbedSOM}
@@ -20,6 +20,8 @@ PlotEmbed(embed, value = 0, red = 0, green = 0, blue = 0,
 \item{fv, fr, fg, fb}{Functions to transform the values before they are normalized}
 
 \item{powv, powr, powg, powb}{Adjustments of the value plotting}
+
+\item{clust, nclust}{integer cluster label column/data, optional cluster number}
 
 \item{limit}{Low/high offset for NormalizeColor}
 
