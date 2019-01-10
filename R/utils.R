@@ -26,11 +26,18 @@ NormalizeColor <- function(data, low=0, high=1, pow=0) {
 #' Marker expression palette generator defined from ColorBrewer's RdYlBu
 #' @export
 ExpressionPalette <- function(n, alpha=1) {
-	# proudly taken from colorBrewer (thanks!)
-	pal <- rev(c("#A50026","#D73027","#F46D43","#FDAE61","#FEE090","#FFFFBF","#E0F3F8","#ABD9E9","#74ADD1","#4575B4","#313695"))
+  # proudly taken from colorBrewer (thanks!)
+  pal <- rev(c("#A50026","#D73027","#F46D43","#FDAE61","#FEE090","#FFFFBF","#E0F3F8","#ABD9E9","#74ADD1","#4575B4","#313695"))
 
-	grDevices::adjustcolor(alpha=alpha,
-		col=grDevices::colorRampPalette(pal, space='Lab', interpolate='linear')(n))
+  grDevices::adjustcolor(alpha=alpha,
+    col=grDevices::colorRampPalette(pal, space='Lab', interpolate='linear')(n))
+}
+
+#' An acceptable cluster color palette
+#' @export
+ClusterPalette <- function(n, vcycle=c(1,0.7), scycle=c(0.7,1), alpha=1)
+{
+  hsv(alpha=alpha, h=c(0:(n-1))/n, v=vcycle, s=scycle)
 }
 
 #' Identity on whatever
@@ -47,6 +54,7 @@ PlotId <- function(x){x}
 #' @param fv,fr,fg,fb Functions to transform the values before they are normalized
 #' @param powv,powr,powg,powb Adjustments of the value plotting
 #' @param limit Low/high offset for NormalizeColor
+#' @param clust,nclust integer cluster label column/data, optional cluster number
 #' @param alpha Default alpha value
 #' @param col Different coloring, if supplied
 #' @param pch,cex Parameters for point plots
@@ -59,6 +67,7 @@ PlotEmbed <- function(embed,
   value=0, red=0, green=0, blue=0,
   fr=PlotId, fg=PlotId, fb=PlotId, fv=PlotId,
   powr=0, powg=0, powb=0, powv=0,
+  clust=NULL, nclust=0,
   nbin=256, maxDens=NULL,
   limit=0.01, pch='.', alpha=NULL, cex=1, exlim=1, fsom, data, xdim, ydim, col) {
   if(missing(data)) {
@@ -71,7 +80,17 @@ PlotEmbed <- function(embed,
     ydim <- fsom$map$ydim
   }
   if(missing(col)) {
-    if(value==0 & red==0 & green==0 & blue==0) {
+    if (!is.null(clust)) {
+      if(length(clust)==1) cdata <- data[,clust]
+      else cdata <- clust
+      if(nclust==0) nclust <- {
+        tmp <- cdata
+        tmp[is.nan(tmp)]<-0
+        max(tmp)
+      }
+      cdata[cdata<1 | cdata>nclust] <- NaN #produce NaNs instead of skipping
+      col <- ClusterPalette(nclust, alpha=alpha)[cdata]
+    } else if(value==0 & red==0 & green==0 & blue==0) {
       if(is.null(alpha)) alpha <- 1
       xbin <- cut(embed[,1], -exlim+(xdim+2*exlim)*c(0:nbin)/nbin, labels=F)
       ybin <- cut(embed[,2], -exlim+(ydim+2*exlim)*c(0:nbin)/nbin, labels=F)
@@ -81,9 +100,6 @@ PlotEmbed <- function(embed,
       dens <- log(dens+1)
       pal <- cut(dens, length(dens), labels=F)
       n <- length(dens)
-      #col <- hsv(h=.9-.85*(1:n)/n,
-      #           v=((0:(n-1))/(n-1)),
-      #           alpha=alpha)[pal]
       col <- ExpressionPalette(256, alpha=alpha)[1+as.integer(255*pal/n)]
     } else if(value==0) {
       if(is.null(alpha)) alpha <- 0.5
