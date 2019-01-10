@@ -20,10 +20,30 @@
 #include <cmath>
 #include <vector>
 
+#include <iostream>
+
+// this helps with debugging floating-point overflows and similar nastiness,
+// uncomment if needed.
+//#define DEBUG_CRASH_ON_FPE
+
+#ifdef DEBUG_CRASH_ON_FPE
+#include <fenv.h>
+#endif
+
 using namespace std;
 
-static const float koho_gravity = 0.000000001; // required tiny epsilon
-static const float min_boost = 0.001;
+// some small numbers first!
+static const float min_boost = 0.001; // lower limit for the parameter
+
+// this is added before calculating log-distances
+static const float zero_avoidance = 0.00000000001;
+
+// a tiny epsilon for preventing singularities
+static const float koho_gravity = 0.00001;
+
+// maximal exponent allowed in scores
+static const float score_exp_norm = 15;
+static const float inv_neg_score_norm = -1 / score_exp_norm;
 
 static inline float sqrf (float n)
 {
@@ -40,6 +60,16 @@ static inline void hswap (dist_id& a, dist_id& b)
 	dist_id c = a;
 	a = b;
 	b = c;
+}
+
+static inline float logscore_normalize (float a)
+{
+	/* normalize out extreme values. We've only got 8 bits of exponent
+	 * precision in floats, so after adding some safety margin we should
+	 * fit between 10^-10 and 10^10. That translates to around exp(23) in
+	 * base-e as a limit. Therefore we run this through logsig to get it at
+	 * least between -20 and 20. */
+	return score_exp_norm / (1 + expf (inv_neg_score_norm * a));
 }
 
 static void heap_down (dist_id* heap, size_t start, size_t lim)
@@ -86,11 +116,17 @@ extern "C" void C_embedSOM (int* pn,
 
 	size_t i, j, k;
 
+#ifdef DEBUG_CRASH_ON_FPE
+	feenableexcept (FE_INVALID | FE_OVERFLOW);
+#endif
+
 	if (topn > xdim * ydim) topn = xdim * ydim;
 	if (boost < min_boost) boost = min_boost;
 
 	vector<dist_id> dists;
 	dists.resize (topn);
+
+	const float score_mod = -float(indim > 1 ? indim - 1 : 1) / (2 * boost);
 
 	float mtx[6];
 
@@ -118,17 +154,16 @@ extern "C" void C_embedSOM (int* pn,
 			heap_down (dists.data (), 0, topn);
 		}
 
-		for (i = 0; i < topn; ++i) {
-			dists[i].dist = powf (
-			  1 + dists[i].dist,
-			  -float(indim > 1 ? indim - 1 : 1) / (2 * boost));
-		}
+		for (i = 0; i < topn; ++i)
+			dists[i].dist = logf (zero_avoidance + dists[i].dist);
 
 		float sum = 0;
+		for (i = 0; i < topn; ++i) sum += dists[i].dist;
+		sum /= topn;
+
 		for (i = 0; i < topn; ++i)
-			for (j = i + 1; j < topn; ++j) {
-				sum += dists[i].dist * dists[j].dist;
-			}
+			dists[i].dist = expf (logscore_normalize (
+			  score_mod * (dists[i].dist - sum)));
 
 		// prepare the matrix for 2x2 linear eqn
 		for (i = 0; i < 6; ++i) mtx[i] = 0; // it's stored by columns!
@@ -151,8 +186,6 @@ extern "C" void C_embedSOM (int* pn,
 				float jx = jdx % xdim, jy = jdx / xdim;
 				float pj = dists[j].dist;
 
-				float score = pi * pj / sum;
-
 				float scalar = 0, sqdist = 0;
 				for (k = 0; k < indim; ++k) {
 					float tmp = koho[k + indim * jdx] -
@@ -162,16 +195,23 @@ extern "C" void C_embedSOM (int* pn,
 					                 koho[k + indim * idx]);
 				}
 
+				if (scalar != 0) {
+					if (sqdist == 0)
+						continue;
+					else
+						scalar /= sqdist;
+				}
+
 				const float hx = jx - ix;
 				const float hy = jy - iy;
 				const float hpxy = hx * hx + hy * hy;
 				const float ihpxy = 1 / hpxy;
-				const float s = score / powf (hpxy, *padjust);
+
+				const float s = pi * pj / powf (hpxy, *padjust);
 
 				const float diag = s * hx * hy * ihpxy;
 				const float rhsc =
-				  s * (scalar * sqrt (ihpxy) / sqdist +
-				       (hx * ix + hy * iy) * ihpxy);
+				  s * (scalar + (hx * ix + hy * iy) * ihpxy);
 
 				mtx[0] += s * hx * hx * ihpxy;
 				mtx[1] += diag;
@@ -188,6 +228,10 @@ extern "C" void C_embedSOM (int* pn,
 		embedding[ptid] = (mtx[4] * mtx[3] - mtx[5] * mtx[2]) / det;
 		embedding[ptid + n] = (mtx[0] * mtx[5] - mtx[1] * mtx[4]) / det;
 	}
+
+#ifdef DEBUG_CRASH_ON_FPE
+	fedisableexcept (FE_INVALID | FE_OVERFLOW);
+#endif
 }
 
 #include <R.h>
