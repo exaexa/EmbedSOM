@@ -23,11 +23,22 @@ NormalizeColor <- function(data, low=0, high=1, pow=0) {
   ps
 }
 
-#' Marker expression palette generator defined from ColorBrewer's RdYlBu
+#' Marker expression palette generator based off ColorBrewer's RdYlBu,
+#' only better for plotting of half-transparent cells
 #' @export
 ExpressionPalette <- function(n, alpha=1) {
-  # proudly taken from colorBrewer (thanks!)
-  pal <- rev(c("#A50026","#D73027","#F46D43","#FDAE61","#FEE090","#FFFFBF","#E0F3F8","#ABD9E9","#74ADD1","#4575B4","#313695"))
+  pal <- rev(c(
+    "#A50026",
+    "#D73027",
+    "#F46D43",
+    "#FDAE61",
+    "#FEE090",
+    "#FFFFA8", # this was darkened a bit
+    "#B8D9C8", # this was converted to gray from almost-white
+    "#91C3E2", # and the rest got darkened a bit
+    "#649DD1",
+    "#3565B4",
+    "#212695"))
 
   grDevices::adjustcolor(alpha=alpha,
     col=grDevices::colorRampPalette(pal, space='Lab', interpolate='linear')(n))
