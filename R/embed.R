@@ -82,10 +82,7 @@ EmbedSOM <- function(fsom=NULL, boost=NULL, k=NULL, adjust=NULL,
   else
   	points <- t(data[,colsUsed])
 
-  if(!is.null(importance))
-  	codes <- t(map$codes * rep(importance, each=nrow(map$codes)))
-  else
-  	codes <- t(map$codes)
+  codes <- t(map$codes)
 
   embedding <- matrix(0, nrow=nrow(data), ncol=2)
 
