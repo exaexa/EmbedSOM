@@ -1,15 +1,15 @@
 # This file is part of EmbedSOM.
-# 
+#
 # EmbedSOM is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # EmbedSOM is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with EmbedSOM. If not, see <https://www.gnu.org/licenses/>.
 
@@ -55,7 +55,7 @@ ClusterPalette <- function(n, vcycle=c(1,0.7), scycle=c(0.7,1), alpha=1)
 PlotId <- function(x){x}
 
 #' Helper function for plotting the embedding
-#' 
+#'
 #' Takes the 'embed' object which is the output of EmbedSOM, together with a
 #' multitude of arguments that override how the plotting is done.
 #'
@@ -136,4 +136,91 @@ PlotEmbed <- function(embed,
     yaxs='i',
     xlim=c(-exlim, xdim+exlim-1),
     ylim=c(-exlim, ydim+exlim-1));
+}
+
+#' Export a data frame for plotting with marker intensities and density.
+#' @export
+PlotData <- function(embed,
+  fsom, data=fsom$data, cols, names,
+  normalize=cols, qlimit=0, qlow=qlimit, qhigh=1-qlimit, pow=0, vf=PlotId,
+  density='Density', densBins=256, densLimit=NULL
+  ) {
+
+  if(missing(cols)) {
+    cols <- colnames(data)
+  }
+
+  df <- data.frame(EmbedSOM1=embed[,1], EmbedSOM2=embed[,2])
+
+  if(is.null(cols) || cols==FALSE) {
+    #no cols to add :]
+  } else {
+    ddf <- data.frame(data[,cols])
+    if(missing(names)) {
+      if(missing(fsom)) names <- colnames(data)[cols]
+      else names <- fsom$prettyColnames[cols]
+    }
+
+    colnames(ddf) <- cols
+    cols <- colnames(ddf) # you may feel offended but I'm ok. :-/
+
+    ncol <- length(normalize)
+    qlow <- rep_len(qlow, ncol)
+    qhigh <- rep_len(qhigh, ncol)
+    pow <- rep_len(pow, ncol)
+    vf <- rep_len(c(vf), ncol)
+
+    for(i in c(1:length(normalize)))
+      ddf[,normalize[i]] <- NormalizeColor(
+        vf[[i]](ddf[,normalize[i]]),
+        qlow[i], qhigh[i], pow[i])
+
+    colnames(ddf) <- names
+    df <- data.frame(df, ddf)
+  }
+
+  if(!is.null(density)) {
+    densBins <- rep_len(densBins, 2)
+    xbin <- cut(embed[,1], breaks=densBins[1], labels=F)
+    ybin <- cut(embed[,2], breaks=densBins[2], labels=F)
+
+    dens <- tabulate(xbin+(densBins[1]+1)*ybin)[xbin+(densBins[1]+1)*ybin]
+    if(!is.null(densLimit)) dens[dens>densLimit] <- densLimit
+    dens <- log(dens+1)
+    n <- length(dens)
+    densf <- data.frame(density=cut(dens, n, labels=F)/n)
+    colnames(densf)[1]<-density
+    df <- data.frame(df, densf)
+  }
+
+  df
+}
+
+#' Wrap PlotData result in ggplot object with relatively nice defaults
+#'
+#' This creates a ggplot2 object with some good defaults. For plotting
+#' expression colorscale, use:
+#'
+#' PlotGG(...) + geom_point(aes(color=yourColName))
+#'
+#' Slight point style modification is recommended:
+#'
+#' PlotGG(...) + geom_point(aes(color=yourColName), alpha=.3, size=.3)
+#'
+#' @param useCowplot use the nice cowplot theme (FALSE disables cowplot)
+#' @param colorScale set the default expression palette to either 'expr'
+#'                   or 'dens', any other value disables.
+#'
+#' @export
+PlotGG <- function(embed, fsom, useCowplot=T, colorScale=T,...) {
+  plt <- ggplot2::ggplot(PlotData(embed, fsom, ...)) +
+    ggplot2::aes(EmbedSOM1, EmbedSOM2)
+
+  if(colorScale)
+    plt <- plt + ggplot2::scale_color_gradientn(colors=ExpressionPalette(256), guide=F)
+
+  if(useCowplot)
+    plt <- plt + cowplot::theme_cowplot()
+
+  plt
 }

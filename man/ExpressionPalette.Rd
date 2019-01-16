@@ -2,10 +2,12 @@
 % Please edit documentation in R/utils.R
 \name{ExpressionPalette}
 \alias{ExpressionPalette}
-\title{Marker expression palette generator defined from ColorBrewer's RdYlBu}
+\title{Marker expression palette generator based off ColorBrewer's RdYlBu,
+only better for plotting of half-transparent cells}
 \usage{
 ExpressionPalette(n, alpha = 1)
 }
 \description{
-Marker expression palette generator defined from ColorBrewer's RdYlBu
+Marker expression palette generator based off ColorBrewer's RdYlBu,
+only better for plotting of half-transparent cells
 }
