@@ -196,20 +196,16 @@ PlotData <- function(embed,
   df
 }
 
-#' Wrap PlotData result in ggplot object with relatively nice defaults
+#' Wrap PlotData result in ggplot object.
 #'
-#' This creates a ggplot2 object with some good defaults. For plotting
-#' expression colorscale, use:
+#' This creates a ggplot2 object for plotting.
+#' Use:
 #'
-#' PlotGG(...) + geom_point(aes(color=yourColName))
+#' PlotGG(...) + geom_point()
 #'
 #' Slight point style modification is recommended:
 #'
 #' PlotGG(...) + geom_point(aes(color=yourColName), alpha=.3, size=.3)
-#'
-#' @param useCowplot use the nice cowplot theme (FALSE disables cowplot)
-#' @param colorScale set the default expression palette to either 'expr'
-#'                   or 'dens', any other value disables.
 #'
 #' @examples
 #'
@@ -222,15 +218,16 @@ PlotData <- function(embed,
 #' plt + geom_point(alpha=.5, size=.3, aes(color=CD8))
 #'
 #' @export
-PlotGG <- function(embed, fsom, useCowplot=T, colorScale=T,...) {
-  plt <- ggplot2::ggplot(PlotData(embed, fsom, ...)) +
+PlotGG <- function(embed, fsom, ...) {
+  ggplot2::ggplot(PlotData(embed, fsom, ...)) +
     ggplot2::aes(EmbedSOM1, EmbedSOM2)
+}
 
-  if(colorScale)
-    plt <- plt + ggplot2::scale_color_gradientn(colors=ExpressionPalette(256), guide=F)
-
-  if(useCowplot)
-    plt <- plt + cowplot::theme_cowplot()
-
-  plt
+#' The ggplot2 scale gradient from ExpressionPalette.
+#'
+#' @example PlotGG(...) + EmbedSOM::ExpressionGradient(guide=F)
+#'
+#' @export
+ExpressionGradient <- function(...) {
+	ggplot2::scale_color_gradientn(colors=ExpressionPalette(256), ...)
 }

@@ -2,6 +2,7 @@
 
 export(ClusterPalette)
 export(EmbedSOM)
+export(ExpressionGradient)
 export(ExpressionPalette)
 export(NormalizeColor)
 export(PlotData)
