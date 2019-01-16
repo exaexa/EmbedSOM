@@ -211,6 +211,16 @@ PlotData <- function(embed,
 #' @param colorScale set the default expression palette to either 'expr'
 #'                   or 'dens', any other value disables.
 #'
+#' @examples
+#'
+#' EmbedSOM::PlotGG(e, fs, cols=F) + geom_point(alpha=.5, size=.3, aes(color=Density))
+#'
+#' EmbedSOM::PlotGG(e, fs, cols=8, names='CD5') + geom_point(alpha=.5, size=.3, aes(color=CD5))
+#'
+#' plt <- EmbedSOM::PlotGG(e, fs, cols=c(10,11), names=c('CD4','CD8'), colorScale=F)
+#' plt + geom_point(alpha=.5, size=.3, aes(color=CD4))
+#' plt + geom_point(alpha=.5, size=.3, aes(color=CD8))
+#'
 #' @export
 PlotGG <- function(embed, fsom, useCowplot=T, colorScale=T,...) {
   plt <- ggplot2::ggplot(PlotData(embed, fsom, ...)) +
