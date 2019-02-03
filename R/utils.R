@@ -74,13 +74,13 @@ PlotId <- function(x){x}
 #' @param fsom FlowSOM object
 #' @param xdim,ydim Sizes of the SOM, taken from fsom by default
 #' @export
-PlotEmbed <- function(embed, fsom,
+PlotEmbed <- function(embed,
   value=0, red=0, green=0, blue=0,
   fr=PlotId, fg=PlotId, fb=PlotId, fv=PlotId,
   powr=0, powg=0, powb=0, powv=0,
   clust=NULL, nclust=0,
   nbin=256, maxDens=NULL, fdens=sqrt,
-  limit=0.01, pch='.', alpha=NULL, cex=1, exlim=1, data, map, xdim, ydim, col) {
+  limit=0.01, pch='.', alpha=NULL, cex=1, exlim=1, fsom, data, map, xdim, ydim, col) {
   if(missing(data)) {
     data <- fsom$data
   }
