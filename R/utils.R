@@ -74,21 +74,24 @@ PlotId <- function(x){x}
 #' @param fsom FlowSOM object
 #' @param xdim,ydim Sizes of the SOM, taken from fsom by default
 #' @export
-PlotEmbed <- function(embed,
+PlotEmbed <- function(embed, fsom,
   value=0, red=0, green=0, blue=0,
   fr=PlotId, fg=PlotId, fb=PlotId, fv=PlotId,
   powr=0, powg=0, powb=0, powv=0,
   clust=NULL, nclust=0,
-  nbin=256, maxDens=NULL,
-  limit=0.01, pch='.', alpha=NULL, cex=1, exlim=1, fsom, data, xdim, ydim, col) {
+  nbin=256, maxDens=NULL, fdens=sqrt,
+  limit=0.01, pch='.', alpha=NULL, cex=1, exlim=1, data, map, xdim, ydim, col) {
   if(missing(data)) {
     data <- fsom$data
   }
+  if(missing(map)) {
+    map <- fsom$map
+  }
   if(missing(xdim)) {
-    xdim <- fsom$map$xdim
+    xdim <- map$xdim
   }
   if(missing(ydim)) {
-    ydim <- fsom$map$ydim
+    ydim <- map$ydim
   }
   if(missing(col)) {
     if (!is.null(clust)) {
@@ -108,7 +111,7 @@ PlotEmbed <- function(embed,
 
       dens <- tabulate(xbin+(nbin+1)*ybin)[xbin+(nbin+1)*ybin]
       if(!is.null(maxDens)) dens[dens>maxDens] <- maxDens
-      dens <- log(dens+1)
+      dens <- fdens(dens)
       pal <- cut(dens, length(dens), labels=F)
       n <- length(dens)
       col <- ExpressionPalette(256, alpha=alpha)[1+as.integer(255*pal/n)]
@@ -143,7 +146,7 @@ PlotEmbed <- function(embed,
 PlotData <- function(embed,
   fsom, data=fsom$data, cols, names,
   normalize=cols, qlimit=0, qlow=qlimit, qhigh=1-qlimit, pow=0, vf=PlotId,
-  density='Density', densBins=256, densLimit=NULL
+  density='Density', densBins=256, densLimit=NULL, fdens=sqrt
   ) {
 
   if(missing(cols)) {
@@ -186,9 +189,8 @@ PlotData <- function(embed,
 
     dens <- tabulate(xbin+(densBins[1]+1)*ybin)[xbin+(densBins[1]+1)*ybin]
     if(!is.null(densLimit)) dens[dens>densLimit] <- densLimit
-    dens <- log(dens+1)
     n <- length(dens)
-    densf <- data.frame(density=cut(dens, n, labels=F)/n)
+    densf <- data.frame(density=cut(fdens(dens), n, labels=F))
     colnames(densf)[1]<-density
     df <- data.frame(df, densf)
   }
