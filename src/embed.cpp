@@ -33,17 +33,13 @@
 using namespace std;
 
 // some small numbers first!
-static const float min_boost = 0.001; // lower limit for the parameter
+static const float min_boost = 0.00001; // lower limit for the parameter
 
-// this is added before calculating log-distances
+// this is added before normalizing the distances
 static const float zero_avoidance = 0.00000000001;
 
 // a tiny epsilon for preventing singularities
 static const float koho_gravity = 0.00001;
-
-// maximal exponent allowed in scores
-static const float score_exp_norm = 15;
-static const float inv_neg_score_norm = -1 / score_exp_norm;
 
 static inline float sqrf (float n)
 {
@@ -60,16 +56,6 @@ static inline void hswap (dist_id& a, dist_id& b)
 	dist_id c = a;
 	a = b;
 	b = c;
-}
-
-static inline float logscore_normalize (float a)
-{
-	/* normalize out extreme values. We've only got 8 bits of exponent
-	 * precision in floats, so after adding some safety margin we should
-	 * fit between 10^-10 and 10^10. That translates to around exp(23) in
-	 * base-e as a limit. Therefore we run this through logsig to get it at
-	 * least between -20 and 20. */
-	return score_exp_norm / (1 + expf (inv_neg_score_norm * a));
 }
 
 static void heap_down (dist_id* heap, size_t start, size_t lim)
@@ -126,13 +112,12 @@ extern "C" void C_embedSOM (int* pn,
 	vector<dist_id> dists;
 	dists.resize (topn);
 
-	const float score_mod = -float(indim > 1 ? indim - 1 : 1) / (2 * boost);
-
 	float mtx[6];
 
 	float* point = points;
 	for (size_t ptid = 0; ptid < n; ++ptid, point += indim) {
 
+		//heap-knn
 		for (i = 0; i < topn; ++i) {
 			float s = 0;
 			for (k = 0; k < indim; ++k)
@@ -154,16 +139,25 @@ extern "C" void C_embedSOM (int* pn,
 			heap_down (dists.data (), 0, topn);
 		}
 
-		for (i = 0; i < topn; ++i)
-			dists[i].dist = logf (zero_avoidance + dists[i].dist);
+		//heapsort the result
+		for(i=topn-1;i>0;--i) {
+			hswap(dists[0],dists[i]);
+			heap_down(dists.data(), 0, i);
+		}
 
-		float sum = 0;
-		for (i = 0; i < topn; ++i) sum += dists[i].dist;
-		sum /= topn;
+		//compute scores
+		float sum = 0, ssum = 0, min = dists[0].dist;
+		for (i = 0; i < topn; ++i) {
+			dists[i].dist = sqrtf (dists[i].dist);
+			sum += dists[i].dist / (i + 1);
+			ssum += 1 / float(i + 1);
+			if (dists[i].dist < min) min = dists[i].dist;
+		}
+
+		sum = -ssum / (zero_avoidance + sum * boost);
 
 		for (i = 0; i < topn; ++i)
-			dists[i].dist = expf (logscore_normalize (
-			  score_mod * (dists[i].dist - sum)));
+			dists[i].dist = expf ((dists[i].dist - min) * sum);
 
 		// prepare the matrix for 2x2 linear eqn
 		for (i = 0; i < 6; ++i) mtx[i] = 0; // it's stored by columns!

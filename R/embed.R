@@ -18,7 +18,7 @@
 #' @param fsom FlowSom object with a built SOM
 #' @param data Data matrix with points that optionally overrides the one from `fsom$data`
 #' @param map Map object in FlowSOM format, to optionally override `fsom$map`
-#' @param boost How much to boost score of SOM neighbors
+#' @param smooth Produce smoother (positive values) or more rough approximation (negative values).
 #' @param k How many SOM neighbors to take into the whole computation
 #' @param adjust How much non-local information to remove (parameter a)
 #' @param importance Importance of dimensions that was used to train the SOM
@@ -27,7 +27,7 @@
 #' @useDynLib EmbedSOM, .registration = TRUE
 #' @export
 
-EmbedSOM <- function(fsom=NULL, boost=NULL, k=NULL, adjust=NULL,
+EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
                      data=NULL, map=NULL, importance=NULL) {
   #TODO validate the sizes of data, colsUsed and codes.
 
@@ -43,11 +43,11 @@ EmbedSOM <- function(fsom=NULL, boost=NULL, k=NULL, adjust=NULL,
     } else data <- fsom$data
   }
 
-  if(is.null(boost))
-    boost <- 2
+  if(is.null(smooth))
+    smooth <- 0
 
   if(is.null(k))
-    k <- as.integer(2*sqrt(map$xdim*map$ydim))
+    k <- as.integer(1+sqrt(map$xdim*map$ydim))
 
   if(is.null(adjust)) {
     adjust <- 1
@@ -61,9 +61,11 @@ EmbedSOM <- function(fsom=NULL, boost=NULL, k=NULL, adjust=NULL,
   x <- map$xdim
   y <- map$ydim
 
-  if (boost<=0.001) {
-    stop("Boost should be at least 0.001!")
+  if (smooth< -30) {
+    stop("Value of smooth must be at least -30.")
   }
+
+  boost <- ((1+sqrt(5))/2)^(smooth-2)
 
   if (k<3) {
     stop("Use at least 3 neighbors for sane results!")
