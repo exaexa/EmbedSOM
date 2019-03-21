@@ -100,11 +100,11 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
       emcoords <- igraph::layout_with_kk(coords=as.matrix(expand.grid(1:x, 1:y)),
         igraph::mst(
           igraph::graph_from_adjacency_matrix(mode='undirected', weighted=T,
-            as.matrix(stats::dist(fsom$map$codes))^emcoords.pow)))
+            as.matrix(stats::dist(map$codes))^emcoords.pow)))
     } else if(emcoords=='fsom-mst') {
       emcoords <- igraph::layout_with_kk(igraph::mst(
           igraph::graph_from_adjacency_matrix(mode='undirected', weighted=T,
-            as.matrix(stats::dist(fsom$map$codes)))))
+            as.matrix(stats::dist(map$codes)))))
     } else stop("unsupported emcoords method")
   }
 
