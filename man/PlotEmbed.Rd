@@ -8,8 +8,7 @@ PlotEmbed(embed, value = 0, red = 0, green = 0, blue = 0,
   fr = PlotId, fg = PlotId, fb = PlotId, fv = PlotId, powr = 0,
   powg = 0, powb = 0, powv = 0, clust = NULL, nclust = 0,
   nbin = 256, maxDens = NULL, fdens = sqrt, limit = 0.01,
-  pch = ".", alpha = NULL, cex = 1, exlim = 1, fsom, data, map,
-  xdim, ydim, col)
+  pch = ".", alpha = NULL, cex = 1, fsom, data, col, ...)
 }
 \arguments{
 \item{embed}{The embedding from EmbedSOM}
@@ -30,13 +29,9 @@ PlotEmbed(embed, value = 0, red = 0, green = 0, blue = 0,
 
 \item{alpha}{Default alpha value}
 
-\item{exlim}{Extra border around the embedding, default 1}
-
 \item{fsom}{FlowSOM object}
 
 \item{data}{Data matrix, taken from fsom parameter by default}
-
-\item{xdim, ydim}{Sizes of the SOM, taken from fsom by default}
 
 \item{col}{Different coloring, if supplied}
 }

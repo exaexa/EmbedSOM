@@ -22,6 +22,8 @@
 #' @param k How many SOM neighbors to take into the whole computation
 #' @param adjust How much non-local information to remove (parameter a)
 #' @param importance Importance of dimensions that was used to train the SOM
+#' @param emcoords Either a (xdim*ydim, 2)-matrix of 2D embedded coordinates of the SOM vertices, or one of 'flat' (default behavior), 'som' (adjust the SOM coords according to U-matrix distances), 'mst' (embed to MST-like structure), or 'fsom-mst' (embed to MST that should look exactly like that of FlowSOM)
+#' @param emcoords.pow Exaggeration factor (power) of the distances in U-matrix used for some methods of auto-generating emcoords; default 1.
 #' @return matrix with 2-D coordinates of the embedded cels
 #'
 #' @useDynLib EmbedSOM, .registration = TRUE

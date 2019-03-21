@@ -69,10 +69,8 @@ PlotId <- function(x){x}
 #' @param alpha Default alpha value
 #' @param col Different coloring, if supplied
 #' @param pch,cex Parameters for point plots
-#' @param exlim Extra border around the embedding, default 1
 #' @param data Data matrix, taken from fsom parameter by default
 #' @param fsom FlowSOM object
-#' @param xdim,ydim Sizes of the SOM, taken from fsom by default
 #' @export
 PlotEmbed <- function(embed,
   value=0, red=0, green=0, blue=0,
@@ -80,22 +78,15 @@ PlotEmbed <- function(embed,
   powr=0, powg=0, powb=0, powv=0,
   clust=NULL, nclust=0,
   nbin=256, maxDens=NULL, fdens=sqrt,
-  limit=0.01, pch='.', alpha=NULL, cex=1, fsom, data, map, xdim, ydim, col, ...) {
-  if(missing(data)) {
-    data <- fsom$data
-  }
-  if(missing(map)) {
-    map <- fsom$map
-  }
-  if(missing(xdim)) {
-    xdim <- map$xdim
-  }
-  if(missing(ydim)) {
-    ydim <- map$ydim
-  }
+  limit=0.01, pch='.', alpha=NULL, cex=1, fsom, data, col, ...) {
   if(missing(col)) {
     if (!is.null(clust)) {
-      if(length(clust)==1) cdata <- data[,clust]
+      if(length(clust)==1) {
+        if(missing(data)) {
+          data <- fsom$data
+        }
+        cdata <- data[,clust]
+      }
       else cdata <- clust
       if(nclust==0) nclust <- {
         tmp <- cdata
@@ -118,6 +109,9 @@ PlotEmbed <- function(embed,
       n <- length(dens)
       col <- ExpressionPalette(256, alpha=alpha)[1+as.integer(255*pal/n)]
     } else if(value==0) {
+      if(missing(data)) {
+        data <- fsom$data
+      }
       if(is.null(alpha)) alpha <- 0.5
       col <- rgb(
         if(red>0)   NormalizeColor(fr(data[,red]),   limit, 1-limit, powr) else 0,
@@ -125,6 +119,9 @@ PlotEmbed <- function(embed,
         if(blue>0)  NormalizeColor(fb(data[,blue]),  limit, 1-limit, powb) else 0,
       alpha)
     } else {
+      if(missing(data)) {
+        data <- fsom$data
+      }
       if(is.null(alpha)) alpha <- 0.5
       col <- ExpressionPalette(256,alpha=alpha)[1+255*NormalizeColor(fv(data[,value]), limit, 1-limit, powv)]
     }
@@ -228,7 +225,7 @@ PlotGG <- function(embed, fsom, ...) {
 
 #' The ggplot2 scale gradient from ExpressionPalette.
 #'
-#' @example PlotGG(...) + EmbedSOM::ExpressionGradient(guide=F)
+#' @example EmbedSOM::PlotGG(...) + EmbedSOM::ExpressionGradient(guide=F)
 #'
 #' @export
 ExpressionGradient <- function(...) {

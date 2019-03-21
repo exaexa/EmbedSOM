@@ -5,7 +5,8 @@
 \title{Process the cells with SOM into a nice embedding}
 \usage{
 EmbedSOM(fsom = NULL, smooth = NULL, k = NULL, adjust = NULL,
-  data = NULL, map = NULL, importance = NULL)
+  data = NULL, map = NULL, importance = NULL, emcoords = "flat",
+  emcoords.pow = 1)
 }
 \arguments{
 \item{fsom}{FlowSom object with a built SOM}
@@ -21,6 +22,10 @@ EmbedSOM(fsom = NULL, smooth = NULL, k = NULL, adjust = NULL,
 \item{map}{Map object in FlowSOM format, to optionally override `fsom$map`}
 
 \item{importance}{Importance of dimensions that was used to train the SOM}
+
+\item{emcoords}{Either a (xdim*ydim, 2)-matrix of 2D embedded coordinates of the SOM vertices, or one of 'flat' (default behavior), 'som' (adjust the SOM coords according to U-matrix distances), 'mst' (embed to MST-like structure), or 'fsom-mst' (embed to MST that should look exactly like that of FlowSOM)}
+
+\item{emcoords.pow}{Exaggeration factor (power) of the distances in U-matrix used for some methods of auto-generating emcoords; default 1.}
 }
 \value{
 matrix with 2-D coordinates of the embedded cels
