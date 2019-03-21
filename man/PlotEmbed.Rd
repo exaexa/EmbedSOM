@@ -7,8 +7,9 @@
 PlotEmbed(embed, value = 0, red = 0, green = 0, blue = 0,
   fr = PlotId, fg = PlotId, fb = PlotId, fv = PlotId, powr = 0,
   powg = 0, powb = 0, powv = 0, clust = NULL, nclust = 0,
-  nbin = 256, maxDens = NULL, limit = 0.01, pch = ".",
-  alpha = NULL, cex = 1, exlim = 1, fsom, data, xdim, ydim, col)
+  nbin = 256, maxDens = NULL, fdens = sqrt, limit = 0.01,
+  pch = ".", alpha = NULL, cex = 1, exlim = 1, fsom, data, map,
+  xdim, ydim, col)
 }
 \arguments{
 \item{embed}{The embedding from EmbedSOM}

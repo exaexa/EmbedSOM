@@ -80,7 +80,7 @@ PlotEmbed <- function(embed,
   powr=0, powg=0, powb=0, powv=0,
   clust=NULL, nclust=0,
   nbin=256, maxDens=NULL, fdens=sqrt,
-  limit=0.01, pch='.', alpha=NULL, cex=1, exlim=1, fsom, data, map, xdim, ydim, col) {
+  limit=0.01, pch='.', alpha=NULL, cex=1, fsom, data, map, xdim, ydim, col, ...) {
   if(missing(data)) {
     data <- fsom$data
   }
@@ -106,8 +106,10 @@ PlotEmbed <- function(embed,
       col <- ClusterPalette(nclust, alpha=alpha)[cdata]
     } else if(value==0 & red==0 & green==0 & blue==0) {
       if(is.null(alpha)) alpha <- 1
-      xbin <- cut(embed[,1], -exlim+(xdim+2*exlim)*c(0:nbin)/nbin, labels=F)
-      ybin <- cut(embed[,2], -exlim+(ydim+2*exlim)*c(0:nbin)/nbin, labels=F)
+      mins <- apply(embed,2,min)
+      maxs <- apply(embed,2,max)
+      xbin <- cut(embed[,1], mins[1]+(maxs[1]-mins[1])*c(0:nbin)/nbin, labels=F)
+      ybin <- cut(embed[,2], mins[2]+(maxs[2]-mins[2])*c(0:nbin)/nbin, labels=F)
 
       dens <- tabulate(xbin+(nbin+1)*ybin)[xbin+(nbin+1)*ybin]
       if(!is.null(maxDens)) dens[dens>maxDens] <- maxDens
@@ -137,8 +139,7 @@ PlotEmbed <- function(embed,
     yaxt='n',
     xaxs='i',
     yaxs='i',
-    xlim=c(-exlim, xdim+exlim-1),
-    ylim=c(-exlim, ydim+exlim-1));
+    ...)
 }
 
 #' Export a data frame for plotting with marker intensities and density.

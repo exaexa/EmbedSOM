@@ -7,7 +7,7 @@
 PlotData(embed, fsom, data = fsom$data, cols, names, normalize = cols,
   qlimit = 0, qlow = qlimit, qhigh = 1 - qlimit, pow = 0,
   vf = PlotId, density = "Density", densBins = 256,
-  densLimit = NULL)
+  densLimit = NULL, fdens = sqrt)
 }
 \description{
 Export a data frame for plotting with marker intensities and density.

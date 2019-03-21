@@ -28,7 +28,8 @@
 #' @export
 
 EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
-                     data=NULL, map=NULL, importance=NULL) {
+                     data=NULL, map=NULL, importance=NULL,
+                     emcoords='flat', emcoords.pow=1) {
   #TODO validate the sizes of data, colsUsed and codes.
 
   if(is.null(map)) {
@@ -80,11 +81,37 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
   }
 
   if(!is.null(importance))
-  	points <- t(data[,colsUsed] * rep(importance, each=nrow(data)))
+    points <- t(data[,colsUsed] * rep(importance, each=nrow(data)))
   else
-  	points <- t(data[,colsUsed])
+    points <- t(data[,colsUsed])
+
+  if(length(emcoords)==1) {
+    if(emcoords=='flat') {
+      emcoords <- as.matrix(expand.grid(1:x, 1:y))
+    } else if(emcoords=='som') {
+      emcoords <- igraph::layout_with_kk(coords=as.matrix(expand.grid(1:x, 1:y)),
+        igraph::graph_from_adjacency_matrix(mode='undirected', weighted=T,
+          as.matrix(igraph::as_adjacency_matrix(igraph::make_lattice(c(x,y))))
+          *
+          as.matrix(dist(map$codes))^emcoords.pow))
+    } else if(emcoords=='mst') {
+      emcoords <- igraph::layout_with_kk(coords=as.matrix(expand.grid(1:x, 1:y)),
+        igraph::mst(
+          igraph::graph_from_adjacency_matrix(mode='undirected', weighted=T,
+            as.matrix(stats::dist(fsom$map$codes))^emcoords.pow)))
+    } else if(emcoords=='fsom-mst') {
+      emcoords <- igraph::layout_with_kk(igraph::mst(
+          igraph::graph_from_adjacency_matrix(mode='undirected', weighted=T,
+            as.matrix(stats::dist(fsom$map$codes)))))
+    } else stop("unsupported emcoords method")
+  }
+
+  if(dim(emcoords)[1] != x*y || dim(emcoords)[2] != 2) {
+    stop("Embedding coordinates need to be of dimension (xdim*ydim, 2).")
+  }
 
   codes <- t(map$codes)
+  emcoords <- t(emcoords)
 
   embedding <- matrix(0, nrow=nrow(data), ncol=2)
 
@@ -104,6 +131,8 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
 
     points=as.single(points),
     koho=as.single(codes),
+    emcoords=as.single(emcoords),
+
     embedding=as.single(embedding))
 
   matrix(res$embedding, nrow=nrow(data), ncol=2)

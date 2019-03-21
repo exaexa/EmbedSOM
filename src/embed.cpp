@@ -94,6 +94,7 @@ extern "C" void C_embedSOM (int* pn,
                             int* pydim,
                             float* points,
                             float* koho,
+                            float* emcoords,
                             float* embedding)
 {
 	size_t n = *pn, indim = *pdim, topn = *pneighbors, xdim = *pxdim,
@@ -166,7 +167,8 @@ extern "C" void C_embedSOM (int* pn,
 			// add a really tiny influence of the point to prevent
 			// singularities
 			size_t idx = dists[i].id;
-			float ix = idx % xdim, iy = idx / xdim;
+			float ix = emcoords[2*idx+0],
+				iy = emcoords[2*idx+1];
 			float pi = dists[i].dist;
 			float gs = koho_gravity * dists[i].dist;
 			mtx[0] += gs;
@@ -177,7 +179,8 @@ extern "C" void C_embedSOM (int* pn,
 			for (j = i + 1; j < topn; ++j) {
 
 				size_t jdx = dists[j].id;
-				float jx = jdx % xdim, jy = jdx / xdim;
+				float jx = emcoords[2*jdx+0],
+					jy = emcoords[2*jdx+1];
 				float pj = dists[j].dist;
 
 				float scalar = 0, sqdist = 0;
@@ -232,7 +235,7 @@ extern "C" void C_embedSOM (int* pn,
 #include <R_ext/Rdynload.h>
 
 static const R_CMethodDef cMethods[] = {
-	{ "C_embedSOM", (DL_FUNC)&C_embedSOM, 10 },
+	{ "C_embedSOM", (DL_FUNC)&C_embedSOM, 11 },
 	{ NULL, NULL, 0 }
 };
 

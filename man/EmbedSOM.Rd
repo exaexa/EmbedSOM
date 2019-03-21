@@ -4,13 +4,13 @@
 \alias{EmbedSOM}
 \title{Process the cells with SOM into a nice embedding}
 \usage{
-EmbedSOM(fsom = NULL, boost = NULL, k = NULL, adjust = NULL,
+EmbedSOM(fsom = NULL, smooth = NULL, k = NULL, adjust = NULL,
   data = NULL, map = NULL, importance = NULL)
 }
 \arguments{
 \item{fsom}{FlowSom object with a built SOM}
 
-\item{boost}{How much to boost score of SOM neighbors}
+\item{smooth}{Produce smoother (positive values) or more rough approximation (negative values).}
 
 \item{k}{How many SOM neighbors to take into the whole computation}
 

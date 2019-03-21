@@ -2,22 +2,16 @@
 % Please edit documentation in R/utils.R
 \name{PlotGG}
 \alias{PlotGG}
-\title{Wrap PlotData result in ggplot object with relatively nice defaults}
+\title{Wrap PlotData result in ggplot object.}
 \usage{
-PlotGG(embed, fsom, useCowplot = T, colorScale = T, ...)
-}
-\arguments{
-\item{useCowplot}{use the nice cowplot theme (FALSE disables cowplot)}
-
-\item{colorScale}{set the default expression palette to either 'expr'
-or 'dens', any other value disables.}
+PlotGG(embed, fsom, ...)
 }
 \description{
-This creates a ggplot2 object with some good defaults. For plotting
-expression colorscale, use:
+This creates a ggplot2 object for plotting.
+Use:
 }
 \details{
-PlotGG(...) + geom_point(aes(color=yourColName))
+PlotGG(...) + geom_point()
 
 Slight point style modification is recommended:
 
