@@ -134,8 +134,6 @@ PlotEmbed <- function(embed,
     col=col,
     xaxt='n',
     yaxt='n',
-    xaxs='i',
-    yaxs='i',
     ...)
 }
 
