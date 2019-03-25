@@ -22,7 +22,7 @@
 #' @param k How many SOM neighbors to take into the whole computation
 #' @param adjust How much non-local information to remove (parameter a)
 #' @param importance Importance of dimensions that was used to train the SOM
-#' @param emcoords Either a (xdim*ydim, 2)-matrix of 2D embedded coordinates of the SOM vertices, or one of 'flat' (default behavior), 'som' (adjust the SOM coords according to U-matrix distances), 'mst' (embed to MST-like structure), or 'fsom-mst' (embed to MST that should look exactly like that of FlowSOM)
+#' @param emcoords Either a (xdim*ydim, 2)-matrix of 2D embedded coordinates of the SOM vertices, or one of 'flat' (default behavior), 'som' (adjust the SOM coords according to U-matrix distances), 'mst' (embed to MST-like structure), 'fsom-mst' (embed to MST that should look exactly like that of FlowSOM), 'tsne' (embed using tSNE from package Rtsne), 'umap' (embed using UMAP from package umap) or 'uwot::umap' (embed using UMAP from package uwot)
 #' @param emcoords.pow Exaggeration factor (power) of the distances in U-matrix used for some methods of auto-generating emcoords; default 1.
 #' @return matrix with 2-D coordinates of the embedded cels
 #'
@@ -105,7 +105,7 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
       emcoords <- igraph::layout_with_kk(igraph::mst(
           igraph::graph_from_adjacency_matrix(mode='undirected', weighted=T,
             as.matrix(stats::dist(map$codes)))))
-    } else if(emcoords=='Rtsne') {
+    } else if(emcoords=='tsne') {
       emcoords <- Rtsne::Rtsne(map$codes)$Y
     } else if(emcoords=='uwot::umap') {
       emcoords <- uwot::umap(map$codes)
