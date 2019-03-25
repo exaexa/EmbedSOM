@@ -105,6 +105,12 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
       emcoords <- igraph::layout_with_kk(igraph::mst(
           igraph::graph_from_adjacency_matrix(mode='undirected', weighted=T,
             as.matrix(stats::dist(map$codes)))))
+    } else if(emcoords=='Rtsne') {
+      emcoords <- Rtsne::Rtsne(map$codes)$Y
+    } else if(emcoords=='uwot::umap') {
+      emcoords <- uwot::umap(map$codes)
+    } else if(emcoords=='umap') {
+      emcoords <- umap::umap(map$codes, umap::umap.defaults)$layout
     } else stop("unsupported emcoords method")
   }
 
