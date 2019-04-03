@@ -1,6 +1,6 @@
 Package: EmbedSOM
-Version: 1.6
-Date: 2018-09-03
+Version: 1.7
+Date: 2019-04-03
 Title: Fast embedding of datapoints guided by a self-organizing map.
 Authors@R: c(person("Mirek", "Kratochvil",
                     role = c("aut", "cre"),
@@ -8,9 +8,7 @@ Authors@R: c(person("Mirek", "Kratochvil",
 Author: Mirek Kratochvil
 Maintainer: Mirek Kratochvil <exa.exa@gmail.com>
 Depends:
-    R (>= 3.2)
-Suggests:
-    ggplot2, cowplot
+    R (>= 3.2), Rcpp
 Description: Provides a nice mapping of multidimensional points onto a 2D space
     defined by a self-organizing map. Designed to work with FlowSOM.
 License: GPL (>= 3)

@@ -80,6 +80,8 @@ PlotEmbed <- function(embed,
   nbin=256, maxDens=NULL, fdens=sqrt,
   limit=0.01, pch='.', alpha=NULL, cex=1, fsom, data, col, ...) {
   if(missing(col)) {
+    if(dim(embed)[2]!=2) stop ("PlotEmbed only works for 2-dimensional embedding")
+
     if (!is.null(clust)) {
       if(length(clust)==1) {
         if(missing(data)) {
@@ -144,6 +146,7 @@ PlotData <- function(embed,
   normalize=cols, qlimit=0, qlow=qlimit, qhigh=1-qlimit, pow=0, vf=PlotId,
   density='Density', densBins=256, densLimit=NULL, fdens=sqrt
   ) {
+  if(dim(embed)[2]!=2) stop ("PlotData only works for 2-dimensional embedding")
 
   if(missing(cols)) {
     cols <- colnames(data)

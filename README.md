@@ -32,6 +32,7 @@ Quick way to get something out:
 - `map`: optional map to use (e.g. if not present in the `fsom` object, or for embedding with different map)
 - `data`: raw data matrix to be embedded (eg. if `fsom` object is not present). Must contain only the used columns, i.e. usually you want to use something like `data=myMatrix[,colsToUse]`)
 - `importance`: same as for FlowSOM::BuildSOM. The `importance` passed to BuildSOM and EmbedSOM should be the same to prevent embedding artifacts (using different values breaks the k-NN calculation)
+- `emcoords`: arbitraty set of map codes positions in the embedding. This may be generated using other more complicated dimensionality reduction algorithms without any loss of performance; EmbedSOM includes autogeneration of these positions (try e.g. parameter values `'som'`, `'mst'`, etc.).
 
 ## HOW-TOs
 
@@ -91,3 +92,18 @@ After you choose a metacluster in the embedding, use the color scale to find its
 	fs$data <- fs$data[clusters[fs$map$mapping[,1]]==5,]
 
 Note that you must rebuild the SOM and re-embed the cells to work with the updated `fs` object.
+
+#### How to produce and display a 3D embedding?
+
+There is now support for 3D SOM grids and 3D embedding. You need the customized SOM function from EmbedSOM:
+
+	map <- EmbedSOM::SOM(someData, xdim=8, ydim=8, zdim=8)
+	embed <- EmbedSOM::EmbedSOM(data=someData, map=map)
+
+`PlotEmbed` and other functions do not work on 3D `embed` data, but you may use other libraries to display the plots. For example the `plot3D` library:
+
+	plot3D::scatter3D(x=e[,1], y=e[,2], z=e[,3])
+
+Interactive rotatable and zoomable plots can be viewed using the `rgl` library:
+
+	rgl::points3d(x=e[,1], y=e[,2], z=e[,3])
