@@ -23,7 +23,7 @@ EmbedSOM(fsom = NULL, smooth = NULL, k = NULL, adjust = NULL,
 
 \item{importance}{Importance of dimensions that was used to train the SOM}
 
-\item{emcoords}{Either a (xdim*ydim, 2)-matrix of 2D embedded coordinates of the SOM vertices, or one of 'flat' (default behavior), 'som' (adjust the SOM coords according to U-matrix distances), 'mst' (embed to MST-like structure), or 'fsom-mst' (embed to MST that should look exactly like that of FlowSOM)}
+\item{emcoords}{Either a (xdim*ydim, 2)-matrix of 2D embedded coordinates of the SOM vertices, or one of 'flat' (default behavior), 'som' (adjust the SOM coords according to U-matrix distances), 'mst' (embed to MST-like structure), 'fsom-mst' (embed to MST that should look exactly like that of FlowSOM), 'tsne' (embed using tSNE from package Rtsne), 'umap' (embed using UMAP from package umap) or 'uwot::umap' (embed using UMAP from package uwot)}
 
 \item{emcoords.pow}{Exaggeration factor (power) of the distances in U-matrix used for some methods of auto-generating emcoords; default 1.}
 }

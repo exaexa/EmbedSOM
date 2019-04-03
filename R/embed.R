@@ -49,8 +49,10 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
   if(is.null(smooth))
     smooth <- 0
 
-  if(is.null(k))
-    k <- as.integer(1+sqrt(map$xdim*map$ydim))
+  if(is.null(k)) {
+    if(map$somdim==2) k <- as.integer(1+sqrt(map$xdim*map$ydim))
+    else k <- as.integer(1+sqrt(map$xdim*map$ydim*map$zdim))
+  }
 
   if(is.null(adjust)) {
     adjust <- 1
@@ -63,6 +65,7 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
 
   x <- map$xdim
   y <- map$ydim
+  z <- map$zdim
 
   if (smooth< -30) {
     stop("Value of smooth must be at least -30.")
@@ -74,7 +77,7 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
     stop("Use at least 3 neighbors for sane results!")
   }
 
-  if (k>(x*y)) {
+  if (k>(x*y*z)) {
     stop("Too many neighbors!")
   }
 
@@ -88,42 +91,57 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
     points <- t(data[,colsUsed])
 
   if(length(emcoords)==1) {
+    theGrid <- as.matrix(map$grid)
+    #if(map$somdim==2) theGrid <- expand.grid(1:x, 1:y)
+    #else theGrid <- expand.grid(1:x, 1:y, 1:z)
+    #theGrid <- as.matrix(theGrid)
+
     if(emcoords=='flat') {
-      emcoords <- as.matrix(expand.grid(1:x, 1:y))
+      emcoords <- theGrid
     } else if(emcoords=='som') {
-      emcoords <- igraph::layout_with_kk(coords=as.matrix(expand.grid(1:x, 1:y)),
+      emcoords <- igraph::layout_with_kk(coords=theGrid, dim=map$somdim,
         igraph::graph_from_adjacency_matrix(mode='undirected', weighted=T,
-          as.matrix(igraph::as_adjacency_matrix(igraph::make_lattice(c(x,y))))
+          as.matrix(igraph::as_adjacency_matrix(igraph::make_lattice(if(map$somdim==2) {c(x,y)} else {c(x,y,z)})))
           *
           as.matrix(dist(map$codes))^emcoords.pow))
     } else if(emcoords=='mst') {
-      emcoords <- igraph::layout_with_kk(coords=as.matrix(expand.grid(1:x, 1:y)),
+      emcoords <- igraph::layout_with_kk(coords=theGrid, dim=map$somdim,
         igraph::mst(
           igraph::graph_from_adjacency_matrix(mode='undirected', weighted=T,
             as.matrix(stats::dist(map$codes))^emcoords.pow)))
     } else if(emcoords=='fsom-mst') {
-      emcoords <- igraph::layout_with_kk(igraph::mst(
+      emcoords <- igraph::layout_with_kk(dim=map$somdim, igraph::mst(
           igraph::graph_from_adjacency_matrix(mode='undirected', weighted=T,
             as.matrix(stats::dist(map$codes)))))
     } else if(emcoords=='tsne') {
-      emcoords <- Rtsne::Rtsne(map$codes)$Y
+      emcoords <- Rtsne::Rtsne(map$codes, dims=map$somdim)$Y
     } else if(emcoords=='uwot::umap') {
-      emcoords <- uwot::umap(map$codes)
+      emcoords <- uwot::umap(map$codes, n_components=map$somdim)
     } else if(emcoords=='umap') {
-      emcoords <- umap::umap(map$codes, umap::umap.defaults)$layout
+      cfg <- umap::umap.defaults
+      cfg$n_components <- map$somdim
+      emcoords <- umap::umap(map$codes, cfg)$layout
     } else stop("unsupported emcoords method")
   }
 
-  if(dim(emcoords)[1] != x*y || dim(emcoords)[2] != 2) {
-    stop("Embedding coordinates need to be of dimension (xdim*ydim, 2).")
+  if(map$somdim==2) {
+    if(dim(emcoords)[1] != x*y || dim(emcoords)[2] != 2) {
+      stop("Embedding coordinates need to be of dimension (xdim*ydim, 2).")
+    }
+  } else {
+    if(dim(emcoords)[1] != x*y*z || dim(emcoords)[2] != 3) {
+      stop("Embedding coordinates need to be of dimension (xdim*ydim*zdim, 3).")
+    }
   }
 
+  ncodes <- dim(map$codes)[1]
   codes <- t(map$codes)
   emcoords <- t(emcoords)
 
-  embedding <- matrix(0, nrow=nrow(data), ncol=2)
+  embedding <- matrix(0, nrow=nrow(data), ncol=map$somdim)
 
   res <- .C("C_embedSOM",
+    psomdim=as.integer(map$somdim),
     pn=as.integer(ndata),
     pdim=as.integer(dim),
 
@@ -134,8 +152,7 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
     # the function now relies on the grid being arranged
     # reasonably, indexed row-by-row. If that changes, it is
     # necessary to pass in the map$grid as well.
-    pxdim=as.integer(x),
-    pydim=as.integer(y),
+    pncodes=as.integer(ncodes),
 
     points=as.single(points),
     koho=as.single(codes),
@@ -143,5 +160,5 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
 
     embedding=as.single(embedding))
 
-  matrix(res$embedding, nrow=nrow(data), ncol=2)
+  matrix(res$embedding, nrow=nrow(data), ncol=map$somdim)
 }
