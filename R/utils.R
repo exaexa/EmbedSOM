@@ -78,7 +78,9 @@ PlotEmbed <- function(embed,
   powr=0, powg=0, powb=0, powv=0,
   clust=NULL, nclust=0,
   nbin=256, maxDens=NULL, fdens=sqrt,
-  limit=0.01, pch='.', alpha=NULL, cex=1, fsom, data, col, ...) {
+  limit=0.01, pch='.', alpha=NULL, cex=1, fsom, data, col,
+  cluster.colors=ClusterPalette,
+  expression.colors=ExpressionPalette, ...) {
   if(missing(col)) {
     if(dim(embed)[2]!=2) stop ("PlotEmbed only works for 2-dimensional embedding")
 
@@ -96,7 +98,7 @@ PlotEmbed <- function(embed,
         max(tmp)
       }
       cdata[cdata<1 | cdata>nclust] <- NaN #produce NaNs instead of skipping
-      col <- ClusterPalette(nclust, alpha=alpha)[cdata]
+      col <- cluster.colors(nclust, alpha=alpha)[cdata]
     } else if(value==0 & red==0 & green==0 & blue==0) {
       if(is.null(alpha)) alpha <- 1
       mins <- apply(embed,2,min)
@@ -109,7 +111,7 @@ PlotEmbed <- function(embed,
       dens <- fdens(dens)
       pal <- cut(dens, length(dens), labels=F)
       n <- length(dens)
-      col <- ExpressionPalette(256, alpha=alpha)[1+as.integer(255*pal/n)]
+      col <- expression.colors(256, alpha=alpha)[1+as.integer(255*pal/n)]
     } else if(value==0) {
       if(missing(data)) {
         data <- fsom$data
@@ -125,7 +127,7 @@ PlotEmbed <- function(embed,
         data <- fsom$data
       }
       if(is.null(alpha)) alpha <- 0.5
-      col <- ExpressionPalette(256,alpha=alpha)[1+255*NormalizeColor(fv(data[,value]), limit, 1-limit, powv)]
+      col <- expression.colors(256,alpha=alpha)[1+255*NormalizeColor(fv(data[,value]), limit, 1-limit, powv)]
     }
   }
 
