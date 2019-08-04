@@ -34,7 +34,7 @@ colnames(data) <- paste0('V',1:5)
 
 This looks relatively nicely from the side (each corner in fact hides 8 separate clusters):
 ```{r, fig.show='hold'}
-plot(data, pch=16, col=rgb(0,0,0,0.2))
+plot(data, pch=19, col=rgb(0,0,0,0.2))
 ```
 
 Linear dimensionality reduction doesn't help much with seeing all 32 clusters:
@@ -92,25 +92,25 @@ print(e[1:10,])
 The embedding can be plotted using the standard graphics function, nicely showing all clusters next to each other.
 
 ```{r, fig.show='hold'}
-plot(e, pch=16, cex=.5, col=rgb(0,0,0,0.2))
+plot(e, pch=19, cex=.5, col=rgb(0,0,0,0.2))
 ```
 
 EmbedSOM provides specialized plotting function which is useful in many common use cases; for example for displaying density:
 
 ```{r, fig.show='hold'}
-EmbedSOM::PlotEmbed(e, pch=16, cex=.5, nbin=100)
+EmbedSOM::PlotEmbed(e, pch=19, cex=.5, nbin=100)
 ```
 
 Or for seeing colored expression of a single marker (`value=1` specifies a column number; column names can be used as well):
 ```{r, fig.show='hold'}
-EmbedSOM::PlotEmbed(e, data=data, pch=16, cex=.5, alpha=0.3, value=1)
+EmbedSOM::PlotEmbed(e, data=data, pch=19, cex=.5, alpha=0.3, value=1)
 ```
 
 (Notice that it is necessary to pass in the original data frame. When working with FlowSOM, the same can be done using `fsom=fs`.)
 
 Or multiple markers:
 ```{r, fig.show='hold'}
-EmbedSOM::PlotEmbed(e, data=data, pch=16, cex=.5, alpha=0.3, red=2, green=4)
+EmbedSOM::PlotEmbed(e, data=data, pch=19, cex=.5, alpha=0.3, red=2, green=4)
 ```
 
 Or perhaps for coloring the clusters. The following example uses the FlowSOM-style clustering to find the original 32 clusters in the scattered data. If that works right, each cluster should have its own color. (See FlowSOM documentation on how the meta-clustering works.)
@@ -119,14 +119,14 @@ n_clusters <- 32
 hcl <- hclust(dist(map$codes))
 metaclusters <- cutree(hcl,n_clusters)[map$mapping[,1]]
 
-EmbedSOM::PlotEmbed(e, pch=16, cex=.5, clust=metaclusters, alpha=.3)
+EmbedSOM::PlotEmbed(e, pch=19, cex=.5, clust=metaclusters, alpha=.3)
 ```
 
 Custom colors are also supported (this is colored according to the dendrogram order):
 ```{r, fig.show='hold'}
 colors <- topo.colors(24*24, alpha=.3)[Matrix::invPerm(hcl$order)[map$mapping[,1]]]
 
-EmbedSOM::PlotEmbed(e, pch=16, cex=.5, col=colors)
+EmbedSOM::PlotEmbed(e, pch=19, cex=.5, col=colors)
 ```
 
 `ggplot2` interoperability is provided using function `PlotGG`:
