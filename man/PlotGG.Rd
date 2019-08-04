@@ -4,10 +4,10 @@
 \alias{PlotGG}
 \title{Wrap PlotData result in ggplot object.}
 \usage{
-PlotGG(embed, fsom, ...)
+PlotGG(embed, ...)
 }
 \arguments{
-\item{embed, fsom}{Embedding data}
+\item{embed}{Embedding data}
 
 \item{...}{Extra arguments passed to PlotData}
 }
