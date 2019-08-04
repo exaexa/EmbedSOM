@@ -186,7 +186,7 @@ PlotData <- function(embed,
 
   df <- data.frame(EmbedSOM1=embed[,1], EmbedSOM2=embed[,2])
 
-  if(is.null(cols) || cols==FALSE) {
+  if(is.null(cols)) {
     #no cols to add :]
   } else {
     ddf <- data.frame(data[,cols])
@@ -240,7 +240,7 @@ PlotData <- function(embed,
 #'
 #' PlotGG(...) + geom_point(aes(color=yourColName), alpha=.3, size=.3)
 #'
-#' @param embed,fsom Embedding data
+#' @param embed Embedding data
 #' @param ... Extra arguments passed to PlotData
 #' @export
 PlotGG <- function(embed, ...) {
