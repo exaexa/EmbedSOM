@@ -8,9 +8,20 @@ VERTAG=$(git describe --tags --no-abbrev "${HEAD}")
 VER=${VERTAG#v}
 ARCHIVE=${N}_${VER}.tar.gz
 
-git archive --format=tar --prefix="${N}/" "${HEAD}" | \
-tar -f - \
+TMPDIR=".tmpbuild-$$"
+
+mkdir ${TMPDIR} || exit 1
+
+git archive --format=tar --prefix="${N}/" "${HEAD}" \
+| tar f - \
 	--delete "${N}/pack_cran.sh" \
 	--delete "${N}/vignettes/.gitignore" \
-	--delete "${N}/src/.clang-format" | \
-gzip -c > "${ARCHIVE}"
+	--delete "${N}/src/.clang-format" \
+	--delete "${N}/src/style.sh" \
+| tar xf - -C ${TMPDIR}
+
+R CMD build ./${TMPDIR}/${N}/ --compact-vignettes
+
+rm -fr ${TMPDIR}
+
+R CMD check ${ARCHIVE}

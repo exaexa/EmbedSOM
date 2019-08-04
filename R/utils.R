@@ -229,10 +229,6 @@ PlotData <- function(embed,
   df
 }
 
-# this is required because of ggplot aesthetics syntax isn't properly
-# recognized by `R CMD check`.
-utils::suppressForeignCheck(c("EmbedSOM1", "EmbedSOM2"))
-
 #' Wrap PlotData result in ggplot object.
 #'
 #' This creates a ggplot2 object for plotting.
@@ -249,7 +245,8 @@ utils::suppressForeignCheck(c("EmbedSOM1", "EmbedSOM2"))
 #' @export
 PlotGG <- function(embed, fsom, ...) {
   ggplot2::ggplot(PlotData(embed, fsom, ...)) +
-    ggplot2::aes(EmbedSOM1, EmbedSOM2)
+    dontCheck(ggplot2::aes(EmbedSOM1, EmbedSOM2))
+  #dontCheck avoids R CMD check complaining about aesthetics' names
 }
 
 #' The ggplot2 scale gradient from ExpressionPalette.
