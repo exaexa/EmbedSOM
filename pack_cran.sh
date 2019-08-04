@@ -8,4 +8,9 @@ VERTAG=$(git describe --tags --no-abbrev "${HEAD}")
 VER=${VERTAG#v}
 ARCHIVE=${N}_${VER}.tar.gz
 
-exec git archive --format=tar.gz --prefix="${N}/" "${HEAD}" > "${ARCHIVE}"
+git archive --format=tar --prefix="${N}/" "${HEAD}" | \
+tar -f - \
+	--delete "${N}/pack_cran.sh" \
+	--delete "${N}/vignettes/.gitignore" \
+	--delete "${N}/src/.clang-format" | \
+gzip -c > "${ARCHIVE}"

@@ -229,6 +229,10 @@ PlotData <- function(embed,
   df
 }
 
+# this is required because of ggplot aesthetics syntax isn't properly
+# recognized by `R CMD check`.
+utils::suppressForeignCheck(c("EmbedSOM1", "EmbedSOM2"))
+
 #' Wrap PlotData result in ggplot object.
 #'
 #' This creates a ggplot2 object for plotting.
