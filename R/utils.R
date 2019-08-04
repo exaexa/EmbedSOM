@@ -245,8 +245,7 @@ PlotData <- function(embed,
 #' @export
 PlotGG <- function(embed, fsom, ...) {
   ggplot2::ggplot(PlotData(embed, fsom, ...)) +
-    dontCheck(ggplot2::aes(EmbedSOM1, EmbedSOM2))
-  #dontCheck avoids R CMD check complaining about aesthetics' names
+    ggplot2::aes_string('EmbedSOM1', 'EmbedSOM2')
 }
 
 #' The ggplot2 scale gradient from ExpressionPalette.
