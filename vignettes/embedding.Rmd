@@ -15,7 +15,7 @@ set.seed(1337)
 
 # Basic embedding with EmbedSOM
 
-## Getting the data
+## Dataset
 
 We will embed a small dataset created from gaussian clusters positioned in vertices of a 5-dimensional hypercube.
 
@@ -40,6 +40,10 @@ Linear dimensionality reduction doesn't help much with seeing the clusters:
 ```{r, fig.show='hold'}
 plot(data.frame(prcomp(data)$x), pch='.', col=rgb(0,0,0,0.2))
 ```
+
+Let's use the non-linear EmbedSOM instead.
+
+## Getting the SOM ready
 
 EmbedSOM works on a SOM built using FlowSOM. You may use `ReadInput` for reading e.g. a FCS file; we will work with the synthetic data, and immediately build a small SOM from them.
 ```{r}
@@ -73,7 +77,7 @@ print(e[1:10,])
 
 ## Plotting the data
 
-The embedding can be plotted using the standard graphics function:
+The embedding can be plotted using the standard graphics function, nicely showing all clusters next to each other.
 
 ```{r, fig.show='hold'}
 plot(e, pch=16, cex=.5, col=rgb(0,0,0,0.2))
@@ -89,6 +93,7 @@ Or for seeing colored expression of a single marker (`value=1` specifies a colum
 ```{r, fig.show='hold'}
 EmbedSOM::PlotEmbed(e, fsom=fs, pch=16, cex=.5, alpha=0.3, value=1)
 ```
+
 (Notice that it is necessary to pass in the original data frame as `fsom=fs`.)
 
 Or multiple markers:
@@ -96,13 +101,13 @@ Or multiple markers:
 EmbedSOM::PlotEmbed(e, fsom=fs, pch=16, cex=.5, alpha=0.3, red=2, blue=4)
 ```
 
-Or perhaps of cluster. The following example uses the FlowSOM pre-clustering to extract the original 32 clusters from the scattered data; if that works right, each cluster should have its own color. (See FlowSOM documentation on how the meta-clustering works.)
+Or perhaps for coloring the clusters. The following example uses the FlowSOM-style clustering to find the original 32 clusters in the scattered data. If that works right, each cluster should have its own color. (See FlowSOM documentation on how the meta-clustering works.)
 ```{r, fig.show='hold'}
 n_clusters <- 32
 hcl <- hclust(dist(fs$map$codes))
-clusters <- cutree(hcl,n_clusters)[fs$map$mapping[,1]]
+metaclusters <- cutree(hcl,n_clusters)[fs$map$mapping[,1]]
 
-EmbedSOM::PlotEmbed(e, pch=16, cex=.5, clust=clusters, alpha=.3)
+EmbedSOM::PlotEmbed(e, pch=16, cex=.5, clust=metaclusters, alpha=.3)
 ```
 
 Custom colors are also supported (this is colored according to the dendrogram order):
