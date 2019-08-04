@@ -24,4 +24,4 @@ R CMD build ./${TMPDIR}/${N}/ --compact-vignettes
 
 rm -fr ${TMPDIR}
 
-R CMD check ${ARCHIVE}
+R CMD check --as-cran ${ARCHIVE}

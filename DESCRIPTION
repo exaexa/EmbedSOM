@@ -5,8 +5,6 @@ Title: Fast Embedding Guided by Self-Organizing Map
 Authors@R: c(person("Mirek", "Kratochvil",
                     role = c("aut", "cre"),
                     email = "exa.exa@gmail.com"))
-Author: Mirek Kratochvil
-Maintainer: Mirek Kratochvil [aut, cre] <exa.exa@gmail.com>
 Depends: R (>= 3.2)
 Suggests:
     ggplot2,
