@@ -243,8 +243,8 @@ PlotData <- function(embed,
 #' @param embed,fsom Embedding data
 #' @param ... Extra arguments passed to PlotData
 #' @export
-PlotGG <- function(embed, fsom, ...) {
-  ggplot2::ggplot(PlotData(embed, fsom, ...)) +
+PlotGG <- function(embed, ...) {
+  ggplot2::ggplot(PlotData(embed, ...)) +
     ggplot2::aes_string('EmbedSOM1', 'EmbedSOM2')
 }
 
