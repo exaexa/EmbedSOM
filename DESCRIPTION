@@ -1,18 +1,18 @@
 Package: EmbedSOM
-Version: 1.7
+Version: 1.8
 Date: 2019-08-04
-Title: Fast Embedding Guided by Self-Organizing Map.
+Title: Fast Embedding Guided by Self-Organizing Map
 Authors@R: c(person("Mirek", "Kratochvil",
                     role = c("aut", "cre"),
                     email = "exa.exa@gmail.com"))
 Author: Mirek Kratochvil
 Maintainer: Mirek Kratochvil <exa.exa@gmail.com>
-Depends:
-    R (>= 3.2), Rcpp
+Depends: R (>= 3.2)
+Suggests: ggplot2, igraph, Rtsne, umap, uwot
 Description: Provides a smooth mapping of multidimensional points into
     low-dimensional space defined by a self-organizing map. Designed to work
-    with FlowSOM and flow-cytometry use-cases.
-License: GPL (>= 3)
+    with FlowSOM and flow-cytometry use-cases, see <doi:10.1101/496869>.
+License: GPL (>= 3) | file LICENSE
 LazyData: true
 URL: https://bioinfo.uochb.cas.cz/embedsom
 Encoding: UTF-8

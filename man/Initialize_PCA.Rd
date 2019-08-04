@@ -4,14 +4,12 @@
 \alias{Initialize_PCA}
 \title{Create a grid from first 2 PCA components}
 \usage{
-Initialize_PCA(data, xdim, ydim, zdim)
+Initialize_PCA(data, xdim, ydim, zdim = NULL)
 }
 \arguments{
 \item{data}{matrix in which each row represents a point}
 
-\item{xdim}{x dimension of the grid}
-
-\item{xdim}{y dimension of the grid}
+\item{xdim, ydim, zdim}{Dimensions of the SOM grid}
 }
 \value{
 array containing the selected selected rows

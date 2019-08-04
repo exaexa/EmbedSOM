@@ -8,9 +8,9 @@ SOM(data, xdim = 10, ydim = 10, zdim = NULL, rlen = 10,
   alphaA = c(0.05, 0.01), radiusA = stats::quantile(nhbrdist, 0.67) *
   c(1, 0), alphaB = alphaA * c(-negAlpha, -0.01 * negAlpha),
   radiusB = negRadius * radiusA, init = FALSE,
-  initf = Initialize_PCA, distf = 2, silent = T, codes = NULL,
-  importance = NULL, nhbr.method = "maximum", negRadius = 1.5,
-  negAlpha = 0.2)
+  initf = Initialize_PCA, distf = 2, codes = NULL,
+  importance = NULL, nhbr.method = "maximum", negRadius = 1.33,
+  negAlpha = 0.1, noMapping = F)
 }
 \arguments{
 \item{data}{Matrix containing the training data}
@@ -36,14 +36,12 @@ SOM(data, xdim = 10, ydim = 10, zdim = NULL, rlen = 10,
 \item{initf}{Use the given initialization function if init==T
 (default: Initialize_PCA)}
 
-\item{distf}{Distance function (1=manhattan, 2=euclidean, 3=chebyshev, 
+\item{distf}{Distance function (1=manhattan, 2=euclidean, 3=chebyshev,
 4=cosine)}
-
-\item{silent}{If FALSE, print status updates}
 
 \item{codes}{Cluster centers to start with}
 
-\item{importance}{array with numeric values. Parameters will be scaled 
+\item{importance}{array with numeric values. Parameters will be scaled
 according to importance}
 
 \item{nhbr.method}{Way of computing grid distances, passed as method= to dist() function. Default 'maximum' (square neighborhoods); use 'euclidean' for round neighborhoods.}
@@ -52,6 +50,8 @@ according to importance}
 (use lower value for higher dimensions)}
 
 \item{negAlpha}{the same for alphaB}
+
+\item{noMapping}{If true, do not produce mapping (default F). Useful for online/streaming use.}
 }
 \value{
 A map, which is a list containing all parameter settings and results
@@ -61,7 +61,7 @@ Build a self-organizing map
 }
 \references{
 This code is strongly based on the \code{kohonen} package.
-            R. Wehrens and L.M.C. Buydens, Self- and Super-organising Maps 
+            R. Wehrens and L.M.C. Buydens, Self- and Super-organising Maps
             in R: the kohonen package J. Stat. Softw., 21(5), 2007
 }
 \seealso{

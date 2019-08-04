@@ -6,6 +6,11 @@
 \usage{
 PlotGG(embed, fsom, ...)
 }
+\arguments{
+\item{embed, fsom}{Embedding data}
+
+\item{...}{Extra arguments passed to PlotData}
+}
 \description{
 This creates a ggplot2 object for plotting.
 Use:
@@ -16,15 +21,4 @@ PlotGG(...) + geom_point()
 Slight point style modification is recommended:
 
 PlotGG(...) + geom_point(aes(color=yourColName), alpha=.3, size=.3)
-}
-\examples{
-
-EmbedSOM::PlotGG(e, fs, cols=F) + geom_point(alpha=.5, size=.3, aes(color=Density))
-
-EmbedSOM::PlotGG(e, fs, cols=8, names='CD5') + geom_point(alpha=.5, size=.3, aes(color=CD5))
-
-plt <- EmbedSOM::PlotGG(e, fs, cols=c(10,11), names=c('CD4','CD8'), colorScale=F)
-plt + geom_point(alpha=.5, size=.3, aes(color=CD4))
-plt + geom_point(alpha=.5, size=.3, aes(color=CD8))
-
 }

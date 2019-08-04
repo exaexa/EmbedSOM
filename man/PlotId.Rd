@@ -6,6 +6,12 @@
 \usage{
 PlotId(x)
 }
+\arguments{
+\item{x}{Just the x.}
+}
+\value{
+The x.
+}
 \description{
 Identity on whatever
 }

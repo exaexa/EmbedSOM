@@ -6,6 +6,13 @@
 \usage{
 ClusterPalette(n, vcycle = c(1, 0.7), scycle = c(0.7, 1), alpha = 1)
 }
+\arguments{
+\item{n}{How many colors to generate}
+
+\item{vcycle, scycle}{Small vectors with cycles of saturation/value for hsv}
+
+\item{alpha}{Opacity of the colors}
+}
 \description{
 An acceptable cluster color palette
 }

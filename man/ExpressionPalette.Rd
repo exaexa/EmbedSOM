@@ -7,6 +7,11 @@ only better for plotting of half-transparent cells}
 \usage{
 ExpressionPalette(n, alpha = 1)
 }
+\arguments{
+\item{n}{How many colors to generate}
+
+\item{alpha}{Opacity of the colors}
+}
 \description{
 Marker expression palette generator based off ColorBrewer's RdYlBu,
 only better for plotting of half-transparent cells

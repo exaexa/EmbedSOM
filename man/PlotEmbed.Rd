@@ -8,7 +8,9 @@ PlotEmbed(embed, value = 0, red = 0, green = 0, blue = 0,
   fr = PlotId, fg = PlotId, fb = PlotId, fv = PlotId, powr = 0,
   powg = 0, powb = 0, powv = 0, clust = NULL, nclust = 0,
   nbin = 256, maxDens = NULL, fdens = sqrt, limit = 0.01,
-  pch = ".", alpha = NULL, cex = 1, fsom, data, col, ...)
+  pch = ".", alpha = NULL, cex = 1, fsom, data, col,
+  cluster.colors = ClusterPalette,
+  expression.colors = ExpressionPalette, ...)
 }
 \arguments{
 \item{embed}{The embedding from EmbedSOM}
@@ -23,6 +25,8 @@ PlotEmbed(embed, value = 0, red = 0, green = 0, blue = 0,
 
 \item{clust, nclust}{integer cluster label column/data, optional cluster number}
 
+\item{nbin, maxDens, fdens}{Parameters of density calculation, see PlotData}
+
 \item{limit}{Low/high offset for NormalizeColor}
 
 \item{pch, cex}{Parameters for point plots}
@@ -34,6 +38,12 @@ PlotEmbed(embed, value = 0, red = 0, green = 0, blue = 0,
 \item{data}{Data matrix, taken from fsom parameter by default}
 
 \item{col}{Different coloring, if supplied}
+
+\item{cluster.colors}{Function to generate cluster colors, default ClusterPalette}
+
+\item{expression.colors}{Function to generate expression color scale, default ExpressionPalette}
+
+\item{...}{Extra params passed to plot(...)}
 }
 \description{
 Takes the 'embed' object which is the output of EmbedSOM, together with a

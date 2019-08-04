@@ -105,7 +105,7 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
           as.matrix(igraph::as_adjacency_matrix(
             igraph::make_lattice(if(somdim==2) {c(x,y)} else {c(x,y,z)})))
           *
-          as.matrix(dist(map$codes))^emcoords.pow))
+          as.matrix(stats::dist(map$codes))^emcoords.pow))
     } else if(emcoords=='mst') {
       emcoords <- igraph::layout_with_kk(coords=theGrid, dim=somdim,
         igraph::mst(

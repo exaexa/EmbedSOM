@@ -6,6 +6,9 @@
 \usage{
 ExpressionGradient(...)
 }
+\arguments{
+\item{...}{Arguments passed to ggplot2::scale_color_gradientn}
+}
 \description{
 The ggplot2 scale gradient from ExpressionPalette.
 }

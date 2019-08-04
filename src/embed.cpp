@@ -284,10 +284,9 @@ extern "C" void C_embedSOM (int* psomdim,
 			}
 		}
 
+		// cramer (output is stored R-style by columns)
 		if (somdim == 2) {
-			// cramer
 			float det = mtx[0] * mtx[3] - mtx[1] * mtx[2];
-			// output is stored R-style by columns
 			embedding[ptid] =
 			  (mtx[4] * mtx[3] - mtx[5] * mtx[2]) / det;
 			embedding[ptid + n] =

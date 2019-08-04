@@ -15,9 +15,15 @@
 
 
 #' Helper for computing colors for embedding plots
+#'
+#' @param data Vector of scalar values to normalize between 0 and 1
+#' @param low,high Quantiles to be clamped to 0 and 1 (try low=0.05, high=0.95)
+#' @param pow The scaled data are transformed to data^(2^pow). If set to 0,
+#'            nothing happens. Positive values highlight differences in the
+#'            data closer to 1, negative values highlight differences closer to 0.
 #' @export
 NormalizeColor <- function(data, low=0, high=1, pow=0) {
-  ps <- quantile(data[!is.nan(data)], c(low,high))
+  ps <- stats::quantile(data[!is.nan(data)], c(low,high))
   ps <- pmin(pmax((data-ps[1])/(ps[2]-ps[1]), 0),1)^(2^pow)
   ps[is.nan(ps)] <- 0
   ps
@@ -25,6 +31,9 @@ NormalizeColor <- function(data, low=0, high=1, pow=0) {
 
 #' Marker expression palette generator based off ColorBrewer's RdYlBu,
 #' only better for plotting of half-transparent cells
+#'
+#' @param n How many colors to generate
+#' @param alpha Opacity of the colors
 #' @export
 ExpressionPalette <- function(n, alpha=1) {
   pal <- rev(c(
@@ -45,13 +54,20 @@ ExpressionPalette <- function(n, alpha=1) {
 }
 
 #' An acceptable cluster color palette
+#'
+#' @param n How many colors to generate
+#' @param vcycle,scycle Small vectors with cycles of saturation/value for hsv
+#' @param alpha Opacity of the colors
 #' @export
 ClusterPalette <- function(n, vcycle=c(1,0.7), scycle=c(0.7,1), alpha=1)
 {
-  hsv(alpha=alpha, h=c(0:(n-1))/n, v=vcycle, s=scycle)
+  grDevices::hsv(alpha=alpha, h=c(0:(n-1))/n, v=vcycle, s=scycle)
 }
 
 #' Identity on whatever
+#'
+#' @param x Just the x.
+#' @return The x.
 PlotId <- function(x){x}
 
 #' Helper function for plotting the embedding
@@ -60,17 +76,21 @@ PlotId <- function(x){x}
 #' multitude of arguments that override how the plotting is done.
 #'
 #' @param embed The embedding from EmbedSOM
+#' @param data Data matrix, taken from fsom parameter by default
+#' @param fsom FlowSOM object
 #' @param value The column of data to use for plotting the value
 #' @param red,green,blue The same for RGB components
 #' @param fv,fr,fg,fb Functions to transform the values before they are normalized
 #' @param powv,powr,powg,powb Adjustments of the value plotting
+#' @param nbin,maxDens,fdens Parameters of density calculation, see PlotData
 #' @param limit Low/high offset for NormalizeColor
 #' @param clust,nclust integer cluster label column/data, optional cluster number
 #' @param alpha Default alpha value
 #' @param col Different coloring, if supplied
 #' @param pch,cex Parameters for point plots
-#' @param data Data matrix, taken from fsom parameter by default
-#' @param fsom FlowSOM object
+#' @param cluster.colors Function to generate cluster colors, default ClusterPalette
+#' @param expression.colors Function to generate expression color scale, default ExpressionPalette
+#' @param ... Extra params passed to plot(...)
 #' @export
 PlotEmbed <- function(embed,
   value=0, red=0, green=0, blue=0,
@@ -117,7 +137,7 @@ PlotEmbed <- function(embed,
         data <- fsom$data
       }
       if(is.null(alpha)) alpha <- 0.5
-      col <- rgb(
+      col <- grDevices::rgb(
         if(red>0)   NormalizeColor(fr(data[,red]),   limit, 1-limit, powr) else 0,
         if(green>0) NormalizeColor(fg(data[,green]), limit, 1-limit, powg) else 0,
         if(blue>0)  NormalizeColor(fb(data[,blue]),  limit, 1-limit, powb) else 0,
@@ -131,7 +151,7 @@ PlotEmbed <- function(embed,
     }
   }
 
-  plot(
+  graphics::plot(
     embed,
     cex=cex,
     pch=pch,
@@ -142,6 +162,16 @@ PlotEmbed <- function(embed,
 }
 
 #' Export a data frame for plotting with marker intensities and density.
+#'
+#' @param embed,fsom,data,cols The embedding data, columns to select
+#' @param names Column names for output
+#' @param normalize List of columns to normalize using NormalizeColor, default all
+#' @param qlimit,qlow,qhigh,pow Parameters for the normalization
+#' @param vf Custom value-transforming function
+#' @param density Name of the density column
+#' @param densBins Number of bins for density calculation
+#' @param densLimit Upper limit of density (prevents outliers)
+#' @param fdens Density-transforming function; default sqrt
 #' @export
 PlotData <- function(embed,
   fsom, data=fsom$data, cols, names,
@@ -210,16 +240,8 @@ PlotData <- function(embed,
 #'
 #' PlotGG(...) + geom_point(aes(color=yourColName), alpha=.3, size=.3)
 #'
-#' @examples
-#'
-#' EmbedSOM::PlotGG(e, fs, cols=F) + geom_point(alpha=.5, size=.3, aes(color=Density))
-#'
-#' EmbedSOM::PlotGG(e, fs, cols=8, names='CD5') + geom_point(alpha=.5, size=.3, aes(color=CD5))
-#'
-#' plt <- EmbedSOM::PlotGG(e, fs, cols=c(10,11), names=c('CD4','CD8'), colorScale=F)
-#' plt + geom_point(alpha=.5, size=.3, aes(color=CD4))
-#' plt + geom_point(alpha=.5, size=.3, aes(color=CD8))
-#'
+#' @param embed,fsom Embedding data
+#' @param ... Extra arguments passed to PlotData
 #' @export
 PlotGG <- function(embed, fsom, ...) {
   ggplot2::ggplot(PlotData(embed, fsom, ...)) +
@@ -230,6 +252,7 @@ PlotGG <- function(embed, fsom, ...) {
 #'
 #' @example EmbedSOM::PlotGG(...) + EmbedSOM::ExpressionGradient(guide=F)
 #'
+#' @param ... Arguments passed to ggplot2::scale_color_gradientn
 #' @export
 ExpressionGradient <- function(...) {
 	ggplot2::scale_color_gradientn(colors=ExpressionPalette(256), ...)

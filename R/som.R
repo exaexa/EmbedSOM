@@ -56,7 +56,7 @@ SOM <- function (data, xdim=10, ydim=10, zdim=NULL, rlen=10,
     alphaB=alphaA*c(-negAlpha,-0.01*negAlpha), radiusB = negRadius*radiusA,
     init=FALSE, initf=Initialize_PCA, distf=2,
     codes=NULL, importance = NULL, nhbr.method='maximum',
-    negRadius=1.5, negAlpha=0.2,
+    negRadius=1.33, negAlpha=0.1,
     noMapping=F) {
 
     somdim <- 2
@@ -135,7 +135,7 @@ SOM <- function (data, xdim=10, ydim=10, zdim=NULL, rlen=10,
 #'              4=cosine)
 #'
 #' @return Array with nearest node id for each datapoint
-#'
+#' @export
 MapDataToCodes <- function (codes, newdata, distf=2) {
 
     nnCodes <- .C("es_C_mapDataToCodes",
@@ -151,16 +151,15 @@ MapDataToCodes <- function (codes, newdata, distf=2) {
 }
 
 #' Create a grid from first 2 PCA components
-#' @param   data matrix in which each row represents a point
-#' @param   xdim x dimension of the grid
-#' @param   xdim y dimension of the grid
 #'
+#' @param   data matrix in which each row represents a point
+#' @param   xdim,ydim,zdim Dimensions of the SOM grid
 #' @return  array containing the selected selected rows
 #' @export
-Initialize_PCA <- function(data, xdim, ydim, zdim){
+Initialize_PCA <- function(data, xdim, ydim, zdim=NULL){
     if(!is.null(zdim)) stop("No support for 3D PCA yet")
 
-    pca <- prcomp(data, rank.=2, retx=F)
+    pca <- stats::prcomp(data, rank.=2, retx=F)
     sdev_scale <- 5 # scale out to 5-times standard deviation, which should cover the data nicely
     ax1 <- t(matrix(pca$rotation[,1] * sdev_scale * pca$sdev,
              nrow=ncol(data),
