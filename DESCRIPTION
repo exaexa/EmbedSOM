@@ -10,6 +10,7 @@ Maintainer: Mirek Kratochvil [aut, cre] <exa.exa@gmail.com>
 Depends: R (>= 3.2)
 Suggests:
     ggplot2,
+    Matrix,
     igraph,
     Rtsne,
     umap,
