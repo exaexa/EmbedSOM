@@ -1,0 +1,121 @@
+---
+title: "EmbedSOM basic embedding"
+author: "Mirek Kratochvil"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{EmbedSOM basic embedding}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+set.seed(1337)
+```
+
+# Basic embedding with EmbedSOM
+
+## Getting the data
+
+We will embed a small dataset created from gaussian clusters positioned in vertices of a 5-dimensional hypercube.
+
+```{r}
+#create the seed dataset
+n <- 1024
+data <- matrix(c(rep(0,n),rep(1,n)),ncol=1)
+
+#add dimensions
+for(i in 2:5) data <- cbind(c(rep(0,dim(data)[1]), rep(1, dim(data)[1])),rbind(data,data))
+
+#scatter the points to clusters
+data <- data + 0.2*rnorm(dim(data)[1]*dim(data)[2])
+```
+
+This looks relatively nicely from the side (each corner hides additional 8 clusters):
+```{r, fig.show='hold'}
+plot(data, pch=16, col=rgb(0,0,0,0.2))
+```
+
+Linear dimensionality reduction doesn't help much with seeing the clusters:
+```{r, fig.show='hold'}
+plot(data.frame(prcomp(data)$x), pch='.', col=rgb(0,0,0,0.2))
+```
+
+EmbedSOM works on a SOM built using FlowSOM. You may use `ReadInput` for reading e.g. a FCS file; we will work with the synthetic data, and immediately build a small SOM from them.
+```{r}
+fs <- FlowSOM::ReadInput(as.matrix(data.frame(data)))
+fs <- FlowSOM::BuildSOM(fs, xdim=24, ydim=24)
+```
+
+$24\times24$ is the recommended SOM size for getting something interesting from EmbedSOM -- it provides a good amount of detail, and still runs quite quickly.
+
+(When FlowSOM is not available, there is `EmbedSOM::SOM` which does basically the same and and returns the map, which may be used for embedding as well -- see below.)
+
+## Embedding
+
+When the SOM is ready, a matrix of 2-dimensional coordinates is obtained using the `EmbedSOM` function:
+
+```{r}
+e <- EmbedSOM::EmbedSOM(fs)
+```
+
+Alternatively, raw (or any other) data can be embedded using precisely specified (even external) map, and several extra parameters may be specified:
+
+```{r}
+e <- EmbedSOM::EmbedSOM(data=data, map=fs$map, smooth=-1)
+```
+
+`e` now contains dimensionality-reduced 2D coordinates of the original data that can be directly used for plotting:
+
+```{r}
+print(e[1:10,])
+```
+
+## Plotting the data
+
+The embedding can be plotted using the standard graphics function:
+
+```{r, fig.show='hold'}
+plot(e, pch=16, cex=.5, col=rgb(0,0,0,0.2))
+```
+
+EmbedSOM provides specialized plotting function which is useful in many common use cases; for example for displaying density:
+
+```{r, fig.show='hold'}
+EmbedSOM::PlotEmbed(e, pch=16, cex=.5, nbin=100)
+```
+
+Or for seeing colored expression of a single marker (`value=1` specifies a column number; column names can be used as well):
+```{r, fig.show='hold'}
+EmbedSOM::PlotEmbed(e, fsom=fs, pch=16, cex=.5, alpha=0.3, value=1)
+```
+(Notice that it is necessary to pass in the original data frame as `fsom=fs`.)
+
+Or multiple markers:
+```{r, fig.show='hold'}
+EmbedSOM::PlotEmbed(e, fsom=fs, pch=16, cex=.5, alpha=0.3, red=2, blue=4)
+```
+
+Or perhaps of cluster. The following example uses the FlowSOM pre-clustering to extract the original 32 clusters from the scattered data; if that works right, each cluster should have its own color. (See FlowSOM documentation on how the meta-clustering works.)
+```{r, fig.show='hold'}
+n_clusters <- 32
+hcl <- hclust(dist(fs$map$codes))
+clusters <- cutree(hcl,n_clusters)[fs$map$mapping[,1]]
+
+EmbedSOM::PlotEmbed(e, pch=16, cex=.5, clust=clusters, alpha=.3)
+```
+
+Custom colors are also supported (this is colored according to the dendrogram order):
+```{r, fig.show='hold'}
+colors <- topo.colors(24*24, alpha=.3)[Matrix::invPerm(hcl$order)[fs$map$mapping[,1]]]
+
+EmbedSOM::PlotEmbed(e, pch=16, cex=.5, col=colors)
+```
+
+`ggplot2` interoperability is provided using function `PlotGG`:
+```{r, fig.show='hold'}
+EmbedSOM::PlotGG(e, fsom=fs) + ggplot2::geom_hex(bins=80)
+```
+
+(You may also get the ggplot-compatible data object using `PlotData` function.)
+

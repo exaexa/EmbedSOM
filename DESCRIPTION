@@ -8,7 +8,15 @@ Authors@R: c(person("Mirek", "Kratochvil",
 Author: Mirek Kratochvil
 Maintainer: Mirek Kratochvil <exa.exa@gmail.com>
 Depends: R (>= 3.2)
-Suggests: ggplot2, igraph, Rtsne, umap, uwot
+Suggests:
+    FlowSOM,
+    ggplot2,
+    igraph,
+    Rtsne,
+    umap,
+    uwot,
+    knitr,
+    rmarkdown
 Description: Provides a smooth mapping of multidimensional points into
     low-dimensional space defined by a self-organizing map. Designed to work
     with FlowSOM and flow-cytometry use-cases, see <doi:10.1101/496869>.
@@ -17,3 +25,4 @@ LazyData: true
 URL: https://bioinfo.uochb.cas.cz/embedsom
 Encoding: UTF-8
 RoxygenNote: 6.1.1
+VignetteBuilder: knitr
