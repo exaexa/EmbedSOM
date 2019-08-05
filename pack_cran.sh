@@ -25,3 +25,5 @@ R CMD build ./${TMPDIR}/${N}/ --compact-vignettes
 rm -fr ${TMPDIR}
 
 R CMD check --as-cran ${ARCHIVE}
+
+echo "Did you run roxygen?"

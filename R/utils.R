@@ -21,6 +21,8 @@
 #' @param pow The scaled data are transformed to data^(2^pow). If set to 0,
 #'            nothing happens. Positive values highlight differences in the
 #'            data closer to 1, negative values highlight differences closer to 0.
+#' @examples
+#' EmbedSOM::NormalizeColor(c(1,100,500))
 #' @export
 NormalizeColor <- function(data, low=0, high=1, pow=0) {
   ps <- stats::quantile(data[!is.nan(data)], c(low,high))
@@ -34,6 +36,8 @@ NormalizeColor <- function(data, low=0, high=1, pow=0) {
 #'
 #' @param n How many colors to generate
 #' @param alpha Opacity of the colors
+#' @examples
+#' EmbedSOM::ExpressionPalette(10)
 #' @export
 ExpressionPalette <- function(n, alpha=1) {
   pal <- rev(c(
@@ -58,6 +62,8 @@ ExpressionPalette <- function(n, alpha=1) {
 #' @param n How many colors to generate
 #' @param vcycle,scycle Small vectors with cycles of saturation/value for hsv
 #' @param alpha Opacity of the colors
+#' @examples
+#' EmbedSOM::ClusterPalette(10)
 #' @export
 ClusterPalette <- function(n, vcycle=c(1,0.7), scycle=c(0.7,1), alpha=1)
 {
@@ -91,6 +97,8 @@ PlotId <- function(x){x}
 #' @param cluster.colors Function to generate cluster colors, default ClusterPalette
 #' @param expression.colors Function to generate expression color scale, default ExpressionPalette
 #' @param ... Extra params passed to plot(...)
+#' @examples
+#' EmbedSOM::PlotEmbed(cbind(rnorm(1e6),rnorm(1e6)))
 #' @export
 PlotEmbed <- function(embed,
   value=0, red=0, green=0, blue=0,
@@ -232,16 +240,18 @@ PlotData <- function(embed,
 #' Wrap PlotData result in ggplot object.
 #'
 #' This creates a ggplot2 object for plotting.
-#' Use:
 #'
-#' PlotGG(...) + geom_point()
-#'
-#' Slight point style modification is recommended:
-#'
-#' PlotGG(...) + geom_point(aes(color=yourColName), alpha=.3, size=.3)
 #'
 #' @param embed Embedding data
 #' @param ... Extra arguments passed to PlotData
+#' @examples
+#' \dontrun{
+#' # Default plotting:
+#' PlotGG(e) + ggplot2::geom_point()
+#'
+#' # Slight point style modification is recommended:
+#' PlotGG(e, fsom=fs + geom_point(aes(color=yourColName), alpha=.3, size=.3)
+#' }
 #' @export
 PlotGG <- function(embed, ...) {
   ggplot2::ggplot(PlotData(embed, ...)) +
@@ -250,9 +260,11 @@ PlotGG <- function(embed, ...) {
 
 #' The ggplot2 scale gradient from ExpressionPalette.
 #'
-#' @example EmbedSOM::PlotGG(...) + EmbedSOM::ExpressionGradient(guide=F)
-#'
 #' @param ... Arguments passed to ggplot2::scale_color_gradientn
+#' @examples
+#' \dontrun{
+#' EmbedSOM::PlotGG(e) + EmbedSOM::ExpressionGradient(guide=F)
+#' }
 #' @export
 ExpressionGradient <- function(...) {
 	ggplot2::scale_color_gradientn(colors=ExpressionPalette(256), ...)
