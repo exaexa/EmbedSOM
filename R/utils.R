@@ -98,7 +98,7 @@ PlotId <- function(x){x}
 #' @param expression.colors Function to generate expression color scale, default ExpressionPalette
 #' @param ... Extra params passed to plot(...)
 #' @examples
-#' EmbedSOM::PlotEmbed(cbind(rnorm(1e6),rnorm(1e6)))
+#' EmbedSOM::PlotEmbed(cbind(rnorm(1e5),rnorm(1e5)))
 #' @export
 PlotEmbed <- function(embed,
   value=0, red=0, green=0, blue=0,
@@ -131,13 +131,13 @@ PlotEmbed <- function(embed,
       if(is.null(alpha)) alpha <- 1
       mins <- apply(embed,2,min)
       maxs <- apply(embed,2,max)
-      xbin <- cut(embed[,1], mins[1]+(maxs[1]-mins[1])*c(0:nbin)/nbin, labels=F)
-      ybin <- cut(embed[,2], mins[2]+(maxs[2]-mins[2])*c(0:nbin)/nbin, labels=F)
+      xbin <- cut(embed[,1], mins[1]+(maxs[1]-mins[1])*c(0:nbin)/nbin, labels=FALSE)
+      ybin <- cut(embed[,2], mins[2]+(maxs[2]-mins[2])*c(0:nbin)/nbin, labels=FALSE)
 
       dens <- tabulate(xbin+(nbin+1)*ybin)[xbin+(nbin+1)*ybin]
       if(!is.null(maxDens)) dens[dens>maxDens] <- maxDens
       dens <- fdens(dens)
-      pal <- cut(dens, length(dens), labels=F)
+      pal <- cut(dens, length(dens), labels=FALSE)
       n <- length(dens)
       col <- expression.colors(256, alpha=alpha)[1+as.integer(255*pal/n)]
     } else if(value==0) {
@@ -199,7 +199,7 @@ PlotData <- function(embed,
   } else {
     ddf <- data.frame(data[,cols])
     if(missing(names)) {
-      if(missing(fsom)) names <- colnames(data)[cols]
+      if(missing(fsom)) names <- cols
       else names <- fsom$prettyColnames[cols]
     }
 
@@ -223,13 +223,13 @@ PlotData <- function(embed,
 
   if(!is.null(density)) {
     densBins <- rep_len(densBins, 2)
-    xbin <- cut(embed[,1], breaks=densBins[1], labels=F)
-    ybin <- cut(embed[,2], breaks=densBins[2], labels=F)
+    xbin <- cut(embed[,1], breaks=densBins[1], labels=FALSE)
+    ybin <- cut(embed[,2], breaks=densBins[2], labels=FALSE)
 
     dens <- tabulate(xbin+(densBins[1]+1)*ybin)[xbin+(densBins[1]+1)*ybin]
     if(!is.null(densLimit)) dens[dens>densLimit] <- densLimit
     n <- length(dens)
-    densf <- data.frame(density=cut(fdens(dens), n, labels=F))
+    densf <- data.frame(density=cut(fdens(dens), n, labels=FALSE))
     colnames(densf)[1]<-density
     df <- data.frame(df, densf)
   }
@@ -245,13 +245,14 @@ PlotData <- function(embed,
 #' @param embed Embedding data
 #' @param ... Extra arguments passed to PlotData
 #' @examples
-#' \dontrun{
-#' # Default plotting:
-#' PlotGG(e) + ggplot2::geom_point()
+#' library(EmbedSOM)
+#' library(ggplot2)
 #'
-#' # Slight point style modification is recommended:
-#' PlotGG(e, fsom=fs + geom_point(aes(color=yourColName), alpha=.3, size=.3)
-#' }
+#' # simulate a simple dataset
+#' e <- cbind(rnorm(10000),rnorm(10000))
+#'
+#' PlotGG(e, data=data.frame(Expr=runif(10000))) +
+#'   geom_point(aes_string(color="Expr"))
 #' @export
 PlotGG <- function(embed, ...) {
   ggplot2::ggplot(PlotData(embed, ...)) +
@@ -262,9 +263,16 @@ PlotGG <- function(embed, ...) {
 #'
 #' @param ... Arguments passed to ggplot2::scale_color_gradientn
 #' @examples
-#' \dontrun{
-#' EmbedSOM::PlotGG(e) + EmbedSOM::ExpressionGradient(guide=F)
-#' }
+#' library(EmbedSOM)
+#' library(ggplot2)
+#'
+#' # simulate a simple dataset
+#' e <- cbind(rnorm(10000),rnorm(10000))
+#'
+#' data <- data.frame(Val=log(1+e[,1]^2+e[,2]^2))
+#' PlotGG(e, data=data) +
+#'   geom_point(aes_string(color="Val"), alpha=.5) +
+#'   ExpressionGradient(guide=FALSE)
 #' @export
 ExpressionGradient <- function(...) {
 	ggplot2::scale_color_gradientn(colors=ExpressionPalette(256), ...)

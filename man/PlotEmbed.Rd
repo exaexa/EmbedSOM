@@ -50,5 +50,5 @@ Takes the 'embed' object which is the output of EmbedSOM, together with a
 multitude of arguments that override how the plotting is done.
 }
 \examples{
-EmbedSOM::PlotEmbed(cbind(rnorm(1e6),rnorm(1e6)))
+EmbedSOM::PlotEmbed(cbind(rnorm(1e5),rnorm(1e5)))
 }

@@ -13,7 +13,14 @@ ExpressionGradient(...)
 The ggplot2 scale gradient from ExpressionPalette.
 }
 \examples{
-\dontrun{
-EmbedSOM::PlotGG(e) + EmbedSOM::ExpressionGradient(guide=F)
-}
+library(EmbedSOM)
+library(ggplot2)
+
+# simulate a simple dataset
+e <- cbind(rnorm(10000),rnorm(10000))
+
+data <- data.frame(Val=log(1+e[,1]^2+e[,2]^2))
+PlotGG(e, data=data) +
+  geom_point(aes_string(color="Val"), alpha=.5) +
+  ExpressionGradient(guide=FALSE)
 }

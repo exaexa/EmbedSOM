@@ -15,11 +15,12 @@ PlotGG(embed, ...)
 This creates a ggplot2 object for plotting.
 }
 \examples{
-\dontrun{
-# Default plotting:
-PlotGG(e) + ggplot2::geom_point()
+library(EmbedSOM)
+library(ggplot2)
 
-# Slight point style modification is recommended:
-PlotGG(e, fsom=fs + geom_point(aes(color=yourColName), alpha=.3, size=.3)
-}
+# simulate a simple dataset
+e <- cbind(rnorm(10000),rnorm(10000))
+
+PlotGG(e, data=data.frame(Expr=runif(10000))) +
+  geom_point(aes_string(color="Expr"))
 }
