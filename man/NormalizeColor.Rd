@@ -18,3 +18,6 @@ data closer to 1, negative values highlight differences closer to 0.}
 \description{
 Helper for computing colors for embedding plots
 }
+\examples{
+EmbedSOM::NormalizeColor(c(1,100,500))
+}

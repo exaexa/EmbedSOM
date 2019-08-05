@@ -13,12 +13,13 @@ PlotGG(embed, ...)
 }
 \description{
 This creates a ggplot2 object for plotting.
-Use:
 }
-\details{
-PlotGG(...) + geom_point()
+\examples{
+\dontrun{
+# Default plotting:
+PlotGG(e) + ggplot2::geom_point()
 
-Slight point style modification is recommended:
-
-PlotGG(...) + geom_point(aes(color=yourColName), alpha=.3, size=.3)
+# Slight point style modification is recommended:
+PlotGG(e, fsom=fs + geom_point(aes(color=yourColName), alpha=.3, size=.3)
+}
 }

@@ -49,3 +49,6 @@ PlotEmbed(embed, value = 0, red = 0, green = 0, blue = 0,
 Takes the 'embed' object which is the output of EmbedSOM, together with a
 multitude of arguments that override how the plotting is done.
 }
+\examples{
+EmbedSOM::PlotEmbed(cbind(rnorm(1e6),rnorm(1e6)))
+}

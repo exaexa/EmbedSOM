@@ -33,3 +33,17 @@ matrix with 2D or 3D coordinates of the embedded cels, depending on the map
 \description{
 Process the cells with SOM into a nice embedding
 }
+\examples{
+d <- cbind(rnorm(10000), 3*runif(10000), rexp(10000))
+colnames(d) <- paste0("col",1:3)
+map <- EmbedSOM::SOM(d, xdim=10, ydim=10)
+e <- EmbedSOM::EmbedSOM(data=d, map=map)
+EmbedSOM::PlotEmbed(e, data=d, 'col1', pch=16)
+
+\dontrun{
+# FlowSOM compatibility:
+fs <- FlowSOM::BuildSOM(...)
+e <- EmbedSOM::EmbedSOM(fs)
+EmbedSOM::PlotEmbed(e, fsom=fs)
+}
+}

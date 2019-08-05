@@ -16,3 +16,6 @@ ClusterPalette(n, vcycle = c(1, 0.7), scycle = c(0.7, 1), alpha = 1)
 \description{
 An acceptable cluster color palette
 }
+\examples{
+EmbedSOM::ClusterPalette(10)
+}

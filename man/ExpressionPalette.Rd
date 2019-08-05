@@ -16,3 +16,6 @@ ExpressionPalette(n, alpha = 1)
 Marker expression palette generator based off ColorBrewer's RdYlBu,
 only better for plotting of half-transparent cells
 }
+\examples{
+EmbedSOM::ExpressionPalette(10)
+}

@@ -12,3 +12,8 @@ ExpressionGradient(...)
 \description{
 The ggplot2 scale gradient from ExpressionPalette.
 }
+\examples{
+\dontrun{
+EmbedSOM::PlotGG(e) + EmbedSOM::ExpressionGradient(guide=F)
+}
+}
