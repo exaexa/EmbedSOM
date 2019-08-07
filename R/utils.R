@@ -79,6 +79,7 @@ PlotId <- function(x){x}
 #' Default plot
 #'
 #' @param pch,cex,... correctly defaulted and passed to 'plot'
+#' @export
 PlotDefault <- function(pch='.', cex=1, ...) graphics::plot(..., pch=pch, cex=cex)
 
 #' Helper function for plotting the embedding

@@ -43,8 +43,6 @@ PlotEmbed(embed, value = 0, red = 0, green = 0, blue = 0,
 \item{plotf}{Plot function, defaults to slightly decorated 'graphics::plot'}
 
 \item{...}{Extra params passed to the plot function}
-
-\item{pch, cex}{Parameters for point plots}
 }
 \description{
 Takes the 'embed' object which is the output of EmbedSOM, together with a
