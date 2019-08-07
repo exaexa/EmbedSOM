@@ -5,9 +5,18 @@ Title: Fast Embedding Guided by Self-Organizing Map
 Authors@R: c(person("Mirek", "Kratochvil",
                     role = c("aut", "cre"),
                     email = "exa.exa@gmail.com"),
-             person("Van Gassen", "Sofie",
-	            role = c("cph"),
-		    email = "sofie.vangassen@ugent.be"))
+             person("Sofie", "Van Gassen",
+                    role = "cph",
+                    email = "sofie.vangassen@ugent.be"),
+             person("Britt", "Callebaut",
+                    role = "cph",
+                    email = "britt.callebaut@ugent.be"),
+             person("Yvan", "Saeys",
+                    role = "cph",
+                    email = "yvan.saeys@ugent.be"),
+             person("Ron", "Wehrens",
+                    role = "cph",
+                    email = "ron.wehrens@gmail.com"))
 Depends: R (>= 3.2)
 Suggests:
     ggplot2,
@@ -22,7 +31,7 @@ Description: Provides a smooth mapping of multidimensional points into
     low-dimensional space defined by a self-organizing map. Designed to work
     with 'FlowSOM' and flow-cytometry use-cases. See Kratochvil et al. (2019)
     <doi:10.1101/496869>.
-License: GPL (>= 3) | file LICENSE
+License: GPL (>= 3)
 LazyData: true
 URL: https://bioinfo.uochb.cas.cz/embedsom
 Encoding: UTF-8
