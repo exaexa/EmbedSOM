@@ -165,7 +165,7 @@ PlotEmbed <- function(embed,
     }
   }
 
-  plotf(x=embed, col=col, ...)
+  plotf(x=embed, col=col, xaxt='n', yaxt='n', ...)
 }
 
 #' Export a data frame for plotting with marker intensities and density.
