@@ -76,6 +76,11 @@ ClusterPalette <- function(n, vcycle=c(1,0.7), scycle=c(0.7,1), alpha=1)
 #' @return The x.
 PlotId <- function(x){x}
 
+#' Default plot
+#'
+#' @param pch,cex,... correctly defaulted and passed to 'plot'
+PlotDefault <- function(pch='.', cex=1, ...) graphics::plot(..., pch=pch, cex=cex)
+
 #' Helper function for plotting the embedding
 #'
 #' Takes the 'embed' object which is the output of EmbedSOM, together with a
@@ -93,10 +98,10 @@ PlotId <- function(x){x}
 #' @param clust,nclust integer cluster label column/data, optional cluster number
 #' @param alpha Default alpha value
 #' @param col Different coloring, if supplied
-#' @param pch,cex Parameters for point plots
 #' @param cluster.colors Function to generate cluster colors, default ClusterPalette
 #' @param expression.colors Function to generate expression color scale, default ExpressionPalette
-#' @param ... Extra params passed to plot(...)
+#' @param plotf Plot function, defaults to slightly decorated 'graphics::plot'
+#' @param ... Extra params passed to the plot function
 #' @examples
 #' EmbedSOM::PlotEmbed(cbind(rnorm(1e5),rnorm(1e5)))
 #' @export
@@ -106,9 +111,10 @@ PlotEmbed <- function(embed,
   powr=0, powg=0, powb=0, powv=0,
   clust=NULL, nclust=0,
   nbin=256, maxDens=NULL, fdens=sqrt,
-  limit=0.01, pch='.', alpha=NULL, cex=1, fsom, data, col,
+  limit=0.01, alpha=NULL, fsom, data, col,
   cluster.colors=ClusterPalette,
-  expression.colors=ExpressionPalette, ...) {
+  expression.colors=ExpressionPalette,
+  plotf=PlotDefault, ...) {
   if(missing(col)) {
     if(dim(embed)[2]!=2) stop ("PlotEmbed only works for 2-dimensional embedding")
 
@@ -159,14 +165,7 @@ PlotEmbed <- function(embed,
     }
   }
 
-  graphics::plot(
-    embed,
-    cex=cex,
-    pch=pch,
-    col=col,
-    xaxt='n',
-    yaxt='n',
-    ...)
+  plotf(x=embed, col=col, ...)
 }
 
 #' Export a data frame for plotting with marker intensities and density.
