@@ -15,7 +15,7 @@
 
 #' Process the cells with SOM into a nice embedding
 #' 
-#' @param fsom FlowSom object with a built SOM
+#' @param fsom FlowSOM object with a built SOM (optional replacement for data and map)
 #' @param data Data matrix with points that optionally overrides the one from `fsom$data`
 #' @param map Map object in FlowSOM format, to optionally override `fsom$map`
 #' @param smooth Produce smoother (positive values) or more rough approximation (negative values).
@@ -33,7 +33,7 @@
 #' e <- EmbedSOM::EmbedSOM(data=d, map=map)
 #' EmbedSOM::PlotEmbed(e, data=d, 'col1', pch=16)
 #'
-#' \dontrun{
+#' \donttest{
 #' # FlowSOM compatibility:
 #' fs <- FlowSOM::BuildSOM(...)
 #' e <- EmbedSOM::EmbedSOM(fs)
