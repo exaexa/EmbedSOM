@@ -7,7 +7,9 @@ Fast embedding for flow/mass cytometry data. Best used with FlowSOM (https://git
 
 Use `devtools`:
 
-	devtools::install_github('exaexa/EmbedSOM')
+```r
+devtools::install_github('exaexa/EmbedSOM')
+```
 
 ## Usage
 
@@ -15,11 +17,13 @@ EmbedSOM works by aligning the cells to the FlowSOM-defined SOM (viewed as a smo
 
 Quick way to get something out:
 
-	fs <- FlowSOM::ReadInput('Levine_13dim_cleaned.fcs', scale=TRUE, transform=TRUE, toTransform=c(1:13))
-	fs <- FlowSOM::BuildSOM(fs, xdim=16, ydim=16, colsToUse=c(1:13))
-	e <- EmbedSOM::EmbedSOM(fs) # compute 2D coordinates of cells
-	par(mfrow=c(2,1))
-	EmbedSOM::PlotEmbed(e, fsom=fs)
+```r
+fs <- FlowSOM::ReadInput('Levine_13dim_cleaned.fcs', scale=TRUE, transform=TRUE, toTransform=c(1:13))
+fs <- FlowSOM::BuildSOM(fs, xdim=16, ydim=16, colsToUse=c(1:13))
+e <- EmbedSOM::EmbedSOM(fs) # compute 2D coordinates of cells
+par(mfrow=c(2,1))
+EmbedSOM::PlotEmbed(e, fsom=fs)
+```
 
 (The FCS file can be downloaded from EmbedSOM website at http://bioinfo.uochb.cas.cz/embedsom/)
 
@@ -40,14 +44,16 @@ Quick way to get something out:
 
 Use `flowCore` functionality to add any information to a FCS. The following template saves the scaled FlowSOM object data as-is, together with the embedding:
 
-	fs <- FlowSOM::ReadInput('original.fcs', scale=T, ...)
-	fs <- FlowSOM::BuildSOM(fs, ...)
-	e <- EmbedSOM::EmbedSOM(fs, ...)
-	flowCore::write.FCS(new('flowFrame',
-		exprs=as.matrix(data.frame(fs$data,
-		                           embedsom1=e[,1],
-					   embedsom2=e[,2]))),
-		'original_with_embedding.fcs')
+```r
+fs <- FlowSOM::ReadInput('original.fcs', scale=T, ...)
+fs <- FlowSOM::BuildSOM(fs, ...)
+e <- EmbedSOM::EmbedSOM(fs, ...)
+flowCore::write.FCS(new('flowFrame',
+	exprs=as.matrix(data.frame(fs$data,
+				   embedsom1=e[,1],
+				   embedsom2=e[,2]))),
+	'original_with_embedding.fcs')
+```
 
 See `flowCore` documentation for information about advanced FCS-writing functionality, e.g. for column descriptions.
 
@@ -55,21 +61,23 @@ See `flowCore` documentation for information about advanced FCS-writing function
 
 Train a SOM on an aggregate file, and use it to embed the individual files. It is important to always apply the same scaling and transformations on all input files.
 
-	fs <- FlowSOM::ReadInput(
-		FlowSOM::AggregateFlowFrames(c('file1.fcs', 'file2.fcs', ...),
-		                             cTotal=100000),
-		scale=T, transform=...)
-	n <- length(fs$scaled.scale)-2
-	map <- FlowSOM::SOM(fs)
+```r
+fs <- FlowSOM::ReadInput(
+	FlowSOM::AggregateFlowFrames(c('file1.fcs', 'file2.fcs', ...),
+				     cTotal=100000),
+	scale=T, transform=...)
+n <- length(fs$scaled.scale)-2
+map <- FlowSOM::SOM(fs)
 
-	fs1 <- FlowSOM::ReadInput('file1.fcs',
-		scale=T,
-		scaled.scale=fs$scaled.scale[1:n],
-		scaled.center=fs$scaled.center[1:n],
-		transform=...)
-	e1 <- EmbedSOM::EmbedSOM(fs1, map=map)
-	EmbedSOM::PlotEmbed(e1, fsom=fs1, xdim=10, ydim=10)
-	# repeat as needed for file2.fcs, etc.
+fs1 <- FlowSOM::ReadInput('file1.fcs',
+	scale=T,
+	scaled.scale=fs$scaled.scale[1:n],
+	scaled.center=fs$scaled.center[1:n],
+	transform=...)
+e1 <- EmbedSOM::EmbedSOM(fs1, map=map)
+EmbedSOM::PlotEmbed(e1, fsom=fs1, xdim=10, ydim=10)
+# repeat as needed for file2.fcs, etc.
+```
 
 #### What are the color parameters of PlotEmbed?
 
@@ -81,15 +89,21 @@ Please see documentation in `?PlotEmbed`. By default, `PlotEmbed` plots a simple
 
 First, a clustering method is needed to define the subsets. Supposing you already have a FlowSOM object `fs` with the SOM built, you can run e.g. the FlowSOM metaclustering to generate 10 clusters:
 
-	clusters <- FlowSOM::metaClustering_consensus(fs$map$codes, k=10)
+```r
+clusters <- FlowSOM::metaClustering_consensus(fs$map$codes, k=10)
+```
 
 After that, the metaclusters can be plotted in the embedding. Because the clustering is related to the small FlowSOM "pre-clusters" rather than cells, it is also necessary to use the information from `fs$map$mapping` for getting the cluster information to single cell level:
 
-	EmbedSOM::PlotEmbed(e, fsom=fs, clust=clusters[fs$map$mapping[,1]])
+```r
+EmbedSOM::PlotEmbed(e, fsom=fs, clust=clusters[fs$map$mapping[,1]])
+```
 
 After you choose a metacluster in the embedding, use the color scale to find its number, then filter the cells in `fs` to the corresponding subset. This example selects the cell subset in metacluster number `5`:
 
-	fs$data <- fs$data[clusters[fs$map$mapping[,1]]==5,]
+```r
+fs$data <- fs$data[clusters[fs$map$mapping[,1]]==5,]
+```
 
 Note that you must rebuild the SOM and re-embed the cells to work with the updated `fs` object.
 
@@ -97,13 +111,19 @@ Note that you must rebuild the SOM and re-embed the cells to work with the updat
 
 There is now support for 3D SOM grids and 3D embedding. You need the customized SOM function from EmbedSOM:
 
-	map <- EmbedSOM::SOM(someData, xdim=8, ydim=8, zdim=8)
-	embed <- EmbedSOM::EmbedSOM(data=someData, map=map)
+```r
+map <- EmbedSOM::SOM(someData, xdim=8, ydim=8, zdim=8)
+embed <- EmbedSOM::EmbedSOM(data=someData, map=map)
+```
 
 `PlotEmbed` and other functions do not work on 3D `embed` data, but you may use other libraries to display the plots. For example the `plot3D` library:
 
-	plot3D::scatter3D(x=e[,1], y=e[,2], z=e[,3])
+```r
+plot3D::scatter3D(x=e[,1], y=e[,2], z=e[,3])
+```
 
 Interactive rotatable and zoomable plots can be viewed using the `rgl` library:
 
-	rgl::points3d(x=e[,1], y=e[,2], z=e[,3])
+```r
+rgl::points3d(x=e[,1], y=e[,2], z=e[,3])
+```
