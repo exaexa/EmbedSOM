@@ -67,7 +67,8 @@ ExpressionPalette <- function(n, alpha=1) {
 #' @export
 ClusterPalette <- function(n, vcycle=c(1,0.7), scycle=c(0.7,1), alpha=1)
 {
-  grDevices::hsv(alpha=alpha, h=c(0:(n-1))/n, v=vcycle, s=scycle)
+  if(n<=0) c()
+  else grDevices::hsv(alpha=alpha, h=c(0:(n-1))/n, v=vcycle, s=scycle)
 }
 
 #' Identity on whatever
@@ -96,12 +97,13 @@ PlotDefault <- function(pch='.', cex=1, ...) graphics::plot(..., pch=pch, cex=ce
 #' @param powv,powr,powg,powb Adjustments of the value plotting
 #' @param nbin,maxDens,fdens Parameters of density calculation, see PlotData
 #' @param limit Low/high offset for NormalizeColor
-#' @param clust,nclust integer cluster label column/data, optional cluster number
+#' @param clust Cluster labels (used as factor)
 #' @param alpha Default alpha value
 #' @param col Different coloring, if supplied
 #' @param cluster.colors Function to generate cluster colors, default ClusterPalette
 #' @param expression.colors Function to generate expression color scale, default ExpressionPalette
 #' @param plotf Plot function, defaults to slightly decorated 'graphics::plot'
+#' @param na.color Color to assign to NA values
 #' @param ... Extra params passed to the plot function
 #' @examples
 #' EmbedSOM::PlotEmbed(cbind(rnorm(1e5),rnorm(1e5)))
@@ -110,11 +112,12 @@ PlotEmbed <- function(embed,
   value=0, red=0, green=0, blue=0,
   fr=PlotId, fg=PlotId, fb=PlotId, fv=PlotId,
   powr=0, powg=0, powb=0, powv=0,
-  clust=NULL, nclust=0,
+  clust=NULL,
   nbin=256, maxDens=NULL, fdens=sqrt,
   limit=0.01, alpha=NULL, fsom, data, col,
   cluster.colors=ClusterPalette,
   expression.colors=ExpressionPalette,
+  na.color=rgb(0.75,0.75,0.75,if(is.null(alpha))0.5 else alpha/2),
   plotf=PlotDefault, ...) {
   if(missing(col)) {
     if(dim(embed)[2]!=2) stop ("PlotEmbed only works for 2-dimensional embedding")
@@ -127,13 +130,10 @@ PlotEmbed <- function(embed,
         cdata <- data[,clust]
       }
       else cdata <- clust
-      if(nclust==0) nclust <- {
-        tmp <- cdata
-        tmp[is.nan(tmp)]<-0
-        max(tmp)
-      }
-      cdata[cdata<1 | cdata>nclust] <- NaN #produce NaNs instead of skipping
-      col <- cluster.colors(nclust, alpha=alpha)[cdata]
+      clust <- as.factor(clust)
+
+      if(length(levels(clust))==0) col <- na.color
+      else col <- cluster.colors(length(levels(clust)), alpha=alpha)[as.numeric(clust)]
     } else if(value==0 & red==0 & green==0 & blue==0) {
       if(is.null(alpha)) alpha <- 1
       mins <- apply(embed,2,min)
@@ -166,6 +166,7 @@ PlotEmbed <- function(embed,
     }
   }
 
+  col[is.na(col)]<-na.color
   plotf(x=embed, col=col, xaxt='n', yaxt='n', ...)
 }
 
