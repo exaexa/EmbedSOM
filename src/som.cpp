@@ -81,7 +81,7 @@ extern "C" void es_C_SOM (float* data,
 		/* calculate distances in x and y spaces, and keep track of the
 		   nearest code */
 		int nearest = 0;
-		float nearestd = distf (data, codes + cd, px, n, ncodes);
+		float nearestd = distf (data, codes, px, n, ncodes);
 		for (cd = 1; cd < ncodes; cd++) {
 			tmp = distf (data + i, codes + cd, px, n, ncodes);
 			if (tmp < nearestd) {
