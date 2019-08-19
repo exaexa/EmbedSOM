@@ -338,6 +338,7 @@ extern "C" void C_embedSOM (int* psomdim,
 
 #include "som.h"
 #include <R.h>
+#include <Rmath.h>
 #include <R_ext/Rdynload.h>
 
 static const R_CMethodDef cMethods[] = {
@@ -350,4 +351,5 @@ static const R_CMethodDef cMethods[] = {
 void R_init_EmbedSOM (DllInfo* info)
 {
 	R_registerRoutines (info, cMethods, NULL, NULL, NULL);
+	R_useDynamicSymbols (info, FALSE);
 }
