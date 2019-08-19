@@ -9,7 +9,7 @@ EmbedSOM(fsom = NULL, smooth = NULL, k = NULL, adjust = NULL,
   emcoords.pow = 1)
 }
 \arguments{
-\item{fsom}{FlowSOM object with a built SOM (optional replacement for data and map)}
+\item{fsom}{FlowSOM object with a built SOM (used if data or map are missing)}
 
 \item{smooth}{Produce smoother (positive values) or more rough approximation (negative values).}
 
@@ -39,11 +39,4 @@ colnames(d) <- paste0("col",1:3)
 map <- EmbedSOM::SOM(d, xdim=10, ydim=10)
 e <- EmbedSOM::EmbedSOM(data=d, map=map)
 EmbedSOM::PlotEmbed(e, data=d, 'col1', pch=16)
-
-\donttest{
-# FlowSOM compatibility:
-fs <- FlowSOM::BuildSOM(...)
-e <- EmbedSOM::EmbedSOM(fs)
-EmbedSOM::PlotEmbed(e, fsom=fs)
-}
 }
