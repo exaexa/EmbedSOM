@@ -26,6 +26,8 @@
 // uncomment if needed.
 //#define DEBUG_CRASH_ON_FPE
 
+#include "distfs.h"
+
 #ifdef DEBUG_CRASH_ON_FPE
 #include <fenv.h>
 #endif
@@ -88,6 +90,7 @@ static void heap_down (dist_id* heap, size_t start, size_t lim)
 extern "C" void C_embedSOM (int* psomdim,
                             int* pn,
                             int* pdim,
+                            int* pdist,
                             float* pboost,
                             int* pneighbors,
                             float* padjust,
@@ -101,6 +104,17 @@ extern "C" void C_embedSOM (int* psomdim,
 	const int somdim = *psomdim;
 	const size_t n = *pn, indim = *pdim, ncodes = *pncodes;
 	float boost = *pboost;
+
+	float (*distf) (float*, float*, int, int, int);
+	if (*pdist == 1) {
+		distf = manh;
+	} else if (*pdist == 2) {
+		distf = sqeucl;
+	} else if (*pdist == 3) {
+		distf = chebyshev;
+	} else {
+		distf = sqeucl;
+	}
 
 	size_t i, j, k;
 
@@ -121,10 +135,8 @@ extern "C" void C_embedSOM (int* psomdim,
 
 		// heap-knn
 		for (i = 0; i < topn; ++i) {
-			float s = 0;
-			for (k = 0; k < indim; ++k)
-				s += sqrf (point[k] - koho[k + i * indim]);
-			dists[i].dist = s;
+			dists[i].dist =
+			  distf (point, koho + i * indim, indim, 1, 1);
 			dists[i].id = i;
 		}
 
@@ -132,9 +144,7 @@ extern "C" void C_embedSOM (int* psomdim,
 			heap_down (dists.data (), topn - i - 1, topn);
 
 		for (i = topn; i < ncodes; ++i) {
-			float s = 0;
-			for (k = 0; k < indim; ++k)
-				s += sqrf (point[k] - koho[k + i * indim]);
+			float s = distf (point, koho + i * indim, indim, 1, 1);
 			if (dists[0].dist < s) continue;
 			dists[0].dist = s;
 			dists[0].id = i;
@@ -150,7 +160,7 @@ extern "C" void C_embedSOM (int* psomdim,
 		// compute scores
 		float sum = 0, ssum = 0, min = dists[0].dist;
 		for (i = 0; i < topn; ++i) {
-			dists[i].dist = sqrtf (dists[i].dist);
+			if (*pdist == 2) dists[i].dist = sqrtf (dists[i].dist);
 			sum += dists[i].dist / (i + 1);
 			ssum += 1 / float(i + 1);
 			if (dists[i].dist < min) min = dists[i].dist;
@@ -331,7 +341,7 @@ extern "C" void C_embedSOM (int* psomdim,
 #include <R_ext/Rdynload.h>
 
 static const R_CMethodDef cMethods[] = {
-	{ "C_embedSOM", (DL_FUNC)&C_embedSOM, 11 },
+	{ "C_embedSOM", (DL_FUNC)&C_embedSOM, 12 },
 	{ "es_C_SOM", (DL_FUNC)&es_C_SOM, 12 },
 	{ "es_C_mapDataToCodes", (DL_FUNC)&es_C_mapDataToCodes, 8 },
 	{ NULL, NULL, 0 }

@@ -34,55 +34,7 @@
 #define RANDOUT PutRNGstate ()
 #define UNIF unif_rand ()
 
-static float eucl (float* p1, float* p2, int px, int n, int ncodes)
-{
-	int j;
-	float tmp;
-
-	float xdist = 0.0;
-	for (j = 0; j < px; j++) {
-		tmp = p1[j * n] - p2[j * ncodes];
-		xdist += tmp * tmp;
-	}
-	return sqrt (xdist);
-}
-
-static float manh (float* p1, float* p2, int px, int n, int ncodes)
-{
-	int j;
-	float xdist = 0.0, tmp;
-	for (j = 0; j < px; j++) {
-		tmp = p1[j * n] - p2[j * ncodes];
-		xdist += abs (tmp);
-	}
-	return xdist;
-}
-
-static float chebyshev (float* p1, float* p2, int px, int n, int ncodes)
-{
-	int j;
-	float xdist = 0.0, tmp;
-	for (j = 0; j < px; j++) {
-		tmp = p1[j * n] - p2[j * ncodes];
-		tmp = abs (tmp);
-		if (tmp > xdist) xdist = tmp;
-	}
-	return xdist;
-}
-
-static float cosine (float* p1, float* p2, int px, int n, int ncodes)
-{
-	int j;
-	float nom = 0;
-	float denom1 = 0;
-	float denom2 = 0;
-	for (j = 0; j < px; j++) {
-		nom += p1[j * n] * p2[j * ncodes];
-		denom1 += p1[j * n] * p1[j * n];
-		denom2 += p2[j * ncodes] * p2[j * ncodes];
-	}
-	return (-nom / (sqrt (denom1) * sqrt (denom2))) + 1;
-}
+#include "distfs.h"
 
 extern "C" void es_C_SOM (float* data,
                           float* codes,
@@ -105,13 +57,11 @@ extern "C" void es_C_SOM (float* data,
 	if (*dist == 1) {
 		distf = manh;
 	} else if (*dist == 2) {
-		distf = eucl;
+		distf = sqeucl;
 	} else if (*dist == 3) {
 		distf = chebyshev;
-	} else if (*dist == 4) {
-		distf = cosine;
 	} else {
-		distf = eucl;
+		distf = sqeucl;
 	}
 
 	RANDIN;
@@ -181,13 +131,11 @@ extern "C" void es_C_mapDataToCodes (float* data,
 	if (*dist == 1) {
 		distf = manh;
 	} else if (*dist == 2) {
-		distf = eucl;
+		distf = sqeucl;
 	} else if (*dist == 3) {
 		distf = chebyshev;
-	} else if (*dist == 4) {
-		distf = cosine;
 	} else {
-		distf = eucl;
+		distf = sqeucl;
 	}
 
 	/* i is a counter over objects in data, cd  is a counter over SOM
@@ -206,6 +154,6 @@ extern "C" void es_C_mapDataToCodes (float* data,
 			}
 		}
 		nnCodes[++counter] = minid + 1;
-		nnDists[counter] = mindist;
+		nnDists[counter] = (*dist == 2) ? sqrtf (mindist) : mindist;
 	}
 }

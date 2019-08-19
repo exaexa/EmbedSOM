@@ -33,8 +33,7 @@
 #' @param init  Initialize cluster centers in a non-random way
 #' @param initf Use the given initialization function if init==T
 #'              (default: Initialize_PCA)
-#' @param distf Distance function (1=manhattan, 2=euclidean, 3=chebyshev,
-#'              4=cosine)
+#' @param distf Distance function (1=manhattan, 2=euclidean, 3=chebyshev)
 #' @param codes Cluster centers to start with
 #' @param importance array with numeric values. Parameters will be scaled
 #'                   according to importance
@@ -45,9 +44,6 @@
 #'
 #' @seealso FlowSOM::SOM
 #'
-#' @references This code is strongly based on the \code{kohonen} package.
-#'             R. Wehrens and L.M.C. Buydens, Self- and Super-organising Maps
-#'             in R: the kohonen package J. Stat. Softw., 21(5), 2007
 #' @useDynLib EmbedSOM, .registration = TRUE
 #' @export
 

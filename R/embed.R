@@ -158,6 +158,7 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
     psomdim=as.integer(somdim),
     pn=as.integer(ndata),
     pdim=as.integer(dim),
+    pdistf=as.integer(map$distf),
 
     pboost=as.single(boost),
     pneighbors=as.integer(k),
