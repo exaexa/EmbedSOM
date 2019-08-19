@@ -6,10 +6,12 @@
 \usage{
 PlotEmbed(embed, value = 0, red = 0, green = 0, blue = 0,
   fr = PlotId, fg = PlotId, fb = PlotId, fv = PlotId, powr = 0,
-  powg = 0, powb = 0, powv = 0, clust = NULL, nclust = 0,
-  nbin = 256, maxDens = NULL, fdens = sqrt, limit = 0.01,
-  alpha = NULL, fsom, data, col, cluster.colors = ClusterPalette,
-  expression.colors = ExpressionPalette, plotf = PlotDefault, ...)
+  powg = 0, powb = 0, powv = 0, clust = NULL, nbin = 256,
+  maxDens = NULL, fdens = sqrt, limit = 0.01, alpha = NULL, fsom,
+  data, col, cluster.colors = ClusterPalette,
+  expression.colors = ExpressionPalette,
+  na.color = grDevices::rgb(0.75, 0.75, 0.75, if (is.null(alpha)) 0.5
+  else alpha/2), plotf = PlotDefault, ...)
 }
 \arguments{
 \item{embed}{The embedding from EmbedSOM}
@@ -22,7 +24,7 @@ PlotEmbed(embed, value = 0, red = 0, green = 0, blue = 0,
 
 \item{powv, powr, powg, powb}{Adjustments of the value plotting}
 
-\item{clust, nclust}{integer cluster label column/data, optional cluster number}
+\item{clust}{Cluster labels (used as factor)}
 
 \item{nbin, maxDens, fdens}{Parameters of density calculation, see PlotData}
 
@@ -39,6 +41,8 @@ PlotEmbed(embed, value = 0, red = 0, green = 0, blue = 0,
 \item{cluster.colors}{Function to generate cluster colors, default ClusterPalette}
 
 \item{expression.colors}{Function to generate expression color scale, default ExpressionPalette}
+
+\item{na.color}{Color to assign to NA values}
 
 \item{plotf}{Plot function, defaults to slightly decorated 'graphics::plot'}
 

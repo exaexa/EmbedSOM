@@ -117,7 +117,7 @@ PlotEmbed <- function(embed,
   limit=0.01, alpha=NULL, fsom, data, col,
   cluster.colors=ClusterPalette,
   expression.colors=ExpressionPalette,
-  na.color=rgb(0.75,0.75,0.75,if(is.null(alpha))0.5 else alpha/2),
+  na.color=grDevices::rgb(0.75,0.75,0.75,if(is.null(alpha))0.5 else alpha/2),
   plotf=PlotDefault, ...) {
   if(missing(col)) {
     if(dim(embed)[2]!=2) stop ("PlotEmbed only works for 2-dimensional embedding")

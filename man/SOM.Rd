@@ -36,8 +36,7 @@ SOM(data, xdim = 10, ydim = 10, zdim = NULL, rlen = 10,
 \item{initf}{Use the given initialization function if init==T
 (default: Initialize_PCA)}
 
-\item{distf}{Distance function (1=manhattan, 2=euclidean, 3=chebyshev,
-4=cosine)}
+\item{distf}{Distance function (1=manhattan, 2=euclidean, 3=chebyshev)}
 
 \item{codes}{Cluster centers to start with}
 
@@ -58,11 +57,6 @@ A map, which is a list containing all parameter settings and results
 }
 \description{
 Build a self-organizing map
-}
-\references{
-This code is strongly based on the \code{kohonen} package.
-            R. Wehrens and L.M.C. Buydens, Self- and Super-organising Maps
-            in R: the kohonen package J. Stat. Softw., 21(5), 2007
 }
 \seealso{
 FlowSOM::SOM
