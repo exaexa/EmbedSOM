@@ -4,12 +4,12 @@
 \alias{MapDataToCodes}
 \title{Assign nearest node to each datapoint}
 \usage{
-MapDataToCodes(codes, newdata, distf = 2)
+MapDataToCodes(codes, data, distf = 2)
 }
 \arguments{
 \item{codes}{matrix with nodes of the SOM}
 
-\item{newdata}{datapoints to assign}
+\item{data}{datapoints to assign}
 
 \item{distf}{Distance function (1=manhattan, 2=euclidean, 3=chebyshev,
 4=cosine)}

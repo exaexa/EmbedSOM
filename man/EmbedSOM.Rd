@@ -17,7 +17,7 @@ EmbedSOM(fsom = NULL, smooth = NULL, k = NULL, adjust = NULL,
 
 \item{adjust}{How much non-local information to remove (parameter a)}
 
-\item{data}{Data matrix with points that optionally overrides the one from `fsom$data`}
+\item{data}{Data matrix with points that optionally overrides the one from `fsom$data`.}
 
 \item{map}{Map object in FlowSOM format, to optionally override `fsom$map`}
 
