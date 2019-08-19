@@ -15,7 +15,7 @@
 
 #' Process the cells with SOM into a nice embedding
 #' 
-#' @param data Data matrix with points that optionally overrides the one from `fsom$data`
+#' @param data Data matrix with points that optionally overrides the one from `fsom$data`.
 #' @param map Map object in FlowSOM format, to optionally override `fsom$map`
 #' @param fsom FlowSOM object with a built SOM (used if data or map are missing)
 #' @param smooth Produce smoother (positive values) or more rough approximation (negative values).
@@ -38,7 +38,6 @@
 EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
                      data=NULL, map=NULL, importance=NULL,
                      emcoords='flat', emcoords.pow=1) {
-  #TODO: validate the sizes of data, colsUsed and codes.
 
   if(is.null(map)) {
     if(is.null(fsom)) {
@@ -141,6 +140,17 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
       stop("Embedding coordinates need to be of dimension (xdim*ydim*zdim, 3).")
     }
   }
+
+  # validate size of all data matrices that go into C
+  if(dim(map$codes)[1] != ncodes || dim(map$codes)[2] != dim)
+    stop("wrong size of SOM codebook")
+
+  # points are already transposed
+  if(dim(points)[2] != ndata || dim(points)[1] != dim)
+    stop("wrong size of the input data (check out the column names)")
+
+  if(dim(emcoords)[1] != ncodes || dim(emcoords)[2] != somdim)
+    stop("wrong emcoords size")
 
   codes <- t(map$codes)
   emcoords <- t(emcoords)

@@ -69,6 +69,9 @@ SOM <- function (data, xdim=10, ydim=10, zdim=NULL, rlen=10,
       }
     }
 
+    if(is.null(colnames(data)))
+      stop("Incoming data must have correctly named columns")
+
     if(!is.null(importance)){
         data <- data * rep(importance,each=nrow(data))
     }
@@ -91,6 +94,10 @@ SOM <- function (data, xdim=10, ydim=10, zdim=NULL, rlen=10,
 
     # Initialize the neighbourhood
     nhbrdist <- as.matrix(stats::dist(grid, method = nhbr.method))
+
+    # validate size of data matrices that go into C
+    if(dim(codes)[1] != nCodes || dim(codes)[2] != ncol(data))
+      stop("wrong size of SOM codebook (check column names of data)")
 
     # Compute the SOM
     res <- .C("es_C_SOM",
@@ -126,22 +133,28 @@ SOM <- function (data, xdim=10, ydim=10, zdim=NULL, rlen=10,
 #' Assign nearest node to each datapoint
 #
 #' @param codes matrix with nodes of the SOM
-#' @param newdata datapoints to assign
+#' @param data datapoints to assign
 #' @param distf Distance function (1=manhattan, 2=euclidean, 3=chebyshev,
 #'              4=cosine)
 #'
 #' @return Array with nearest node id for each datapoint
 #' @export
-MapDataToCodes <- function (codes, newdata, distf=2) {
+MapDataToCodes <- function (codes, data, distf=2) {
+
+    colsToUse <- colnames(codes)
+    if(is.null(colsToUse))
+      stop("invalid codebook column names")
+    if(!all(colsToUse %in% colnames(data)))
+      stop("codebook does not match data")
 
     nnCodes <- .C("es_C_mapDataToCodes",
-        as.single(newdata[,colnames(codes)]),
+        as.single(data[,colsToUse]),
         as.single(codes),
         as.integer(nrow(codes)),
-        as.integer(nrow(newdata)),
+        as.integer(nrow(data)),
         as.integer(ncol(codes)),
-        nnCodes = integer(nrow(newdata)),
-        nnDists = double(nrow(newdata)),
+        nnCodes = integer(nrow(data)),
+        nnDists = double(nrow(data)),
         distf = as.integer(distf))
     cbind(nnCodes$nnCodes, nnCodes$nnDists)
 }
