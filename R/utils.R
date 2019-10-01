@@ -81,8 +81,8 @@ ClusterPalette <- function(n, vcycle=c(1,0.7), scycle=c(0.7,1), alpha=1)
 #'
 #' @param exprs Matrix-like with marker expressions
 #'              (extract it manually from your data)
-#' @param power Log-power for exponentiating the normalized expressions
-#'              (convertible to a numeric vector of size '1+dim(exprs)[2]')
+#' @param pow Log-power for exponentiating the normalized expressions
+#'            (convertible to a numeric vector of size '1+dim(exprs)[2]')
 #' @param cutoff Gray level (expressed in sigmas of the sample distribution)
 #' @param col Colors to use, defaults to colors taken from 'ClusterPalette'
 #' @param nocolor The color to use for sub-gray-level expression
@@ -92,17 +92,17 @@ ClusterPalette <- function(n, vcycle=c(1,0.7), scycle=c(0.7,1), alpha=1)
 #' EmbedSOM::PlotEmbed(d, col=EmbedSOM::ExprColors(d, pow=2))
 #' @export
 ExprColors <- function(exprs,
-                       power=1,
+                       pow=1,
                        cutoff=0,
                        col=ClusterPalette(dim(exprs)[2], alpha=alpha),
                        nocolor=rgb(0.75, 0.75, 0.75, alpha/2),
                        alpha=0.5) {
 
-  power <- 2^power
+  pow <- 2^pow
   cutoff <- pnorm(cutoff)
   colM <- col2rgb(alpha=T, c(col, nocolor)) %*%
     apply(rbind(t(pnorm(scale(exprs))),cutoff),
-          2, function(v) (v^power)/sum(v^power))
+          2, function(v) (v^pow)/sum(v^pow))
 
   rgb(red  =colM[1,],
       green=colM[2,],
