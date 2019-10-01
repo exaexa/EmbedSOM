@@ -2,6 +2,7 @@
 
 export(ClusterPalette)
 export(EmbedSOM)
+export(ExprColors)
 export(ExpressionGradient)
 export(ExpressionPalette)
 export(Initialize_PCA)
