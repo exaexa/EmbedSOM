@@ -17,18 +17,24 @@
 #' Helper for computing colors for embedding plots
 #'
 #' @param data Vector of scalar values to normalize between 0 and 1
-#' @param low,high Quantiles to be clamped to 0 and 1 (try low=0.05, high=0.95)
+#' @param low,high Originally quantiles for clamping the color.
+#'                 Only kept for backwards compatibility, now ignored.
+#' @param sds Inverse scale factor for measured standard deviation
+#'            (greater value makes data look more extreme)
 #' @param pow The scaled data are transformed to data^(2^pow). If set to 0,
 #'            nothing happens. Positive values highlight differences in the
 #'            data closer to 1, negative values highlight differences closer to 0.
 #' @examples
 #' EmbedSOM::NormalizeColor(c(1,100,500))
 #' @export
-NormalizeColor <- function(data, low=0, high=1, pow=0) {
-  ps <- stats::quantile(data[!is.nan(data)], c(low,high))
-  ps <- pmin(pmax((data-ps[1])/(ps[2]-ps[1]), 0),1)^(2^pow)
-  ps[is.nan(ps)] <- 0
-  ps
+NormalizeColor <- function(data, low=NULL, high=NULL, pow=0, sds=1) {
+  if(!is.null(low) || !is.null(high))
+    warning("Obsolete NormalizeColor parameters low, high will be removed in future release.")
+
+  data <- data-mean(data, na.rm=T)
+  sdev <- sd(data, na.rm=T)
+  if(sdev==0) sdev <- 1
+  stats::pnorm(data, sd=sdev/sds)^(2^pow)
 }
 
 #' Marker expression palette generator based off ColorBrewer's RdYlBu,
@@ -128,9 +134,10 @@ PlotDefault <- function(pch='.', cex=1, ...) graphics::plot(..., pch=pch, cex=ce
 #' @param value The column of data to use for plotting the value
 #' @param red,green,blue The same for RGB components
 #' @param fv,fr,fg,fb Functions to transform the values before they are normalized
-#' @param powv,powr,powg,powb Adjustments of the value plotting
+#' @param powv,powr,powg,powb Passed to corresponding 'NormalizeColor' calls as 'pow'
+#' @param sdsv,sdsr,sdsg,sdsb Passed to 'NormalizeColor' as 'sds'
 #' @param nbin,maxDens,fdens Parameters of density calculation, see PlotData
-#' @param limit Low/high offset for NormalizeColor
+#' @param limit Low/high offset for 'NormalizeColor' (obsolete, now ignored)
 #' @param clust Cluster labels (used as factor)
 #' @param alpha Default alpha value
 #' @param col Different coloring, if supplied
@@ -146,14 +153,19 @@ PlotEmbed <- function(embed,
   value=0, red=0, green=0, blue=0,
   fr=PlotId, fg=PlotId, fb=PlotId, fv=PlotId,
   powr=0, powg=0, powb=0, powv=0,
+  sdsr=1, sdsg=1, sdsb=1, sdsv=1,
   clust=NULL,
   nbin=256, maxDens=NULL, fdens=sqrt,
-  limit=0.01, alpha=NULL, fsom, data, col,
+  limit=NULL, alpha=NULL, fsom, data, col,
   cluster.colors=ClusterPalette,
   expression.colors=ExpressionPalette,
   na.color=grDevices::rgb(0.75,0.75,0.75,if(is.null(alpha))0.5 else alpha/2),
   plotf=PlotDefault, ...) {
   if(missing(col)) {
+
+    if(!is.null(limit))
+      warning("PlotEmbed parameter 'limit' does nothing and will be removed in future releases.")
+
     if(dim(embed)[2]!=2) stop ("PlotEmbed only works for 2-dimensional embedding")
 
     if (!is.null(clust)) {
@@ -187,16 +199,16 @@ PlotEmbed <- function(embed,
       }
       if(is.null(alpha)) alpha <- 0.5
       col <- grDevices::rgb(
-        if(red>0)   NormalizeColor(fr(data[,red]),   limit, 1-limit, powr) else 0,
-        if(green>0) NormalizeColor(fg(data[,green]), limit, 1-limit, powg) else 0,
-        if(blue>0)  NormalizeColor(fb(data[,blue]),  limit, 1-limit, powb) else 0,
+        if(red>0)   NormalizeColor(fr(data[,red]),   pow=powr, sds=sdsr) else 0,
+        if(green>0) NormalizeColor(fg(data[,green]), pow=powg, sds=sdsg) else 0,
+        if(blue>0)  NormalizeColor(fb(data[,blue]),  pow=powb, sds=sdsb) else 0,
       alpha)
     } else {
       if(missing(data)) {
         data <- fsom$data
       }
       if(is.null(alpha)) alpha <- 0.5
-      col <- expression.colors(256,alpha=alpha)[1+255*NormalizeColor(fv(data[,value]), limit, 1-limit, powv)]
+      col <- expression.colors(256,alpha=alpha)[1+255*NormalizeColor(fv(data[,value]), pow=powv, sds=sdsv)]
     }
   }
 
@@ -209,7 +221,7 @@ PlotEmbed <- function(embed,
 #' @param embed,fsom,data,cols The embedding data, columns to select
 #' @param names Column names for output
 #' @param normalize List of columns to normalize using NormalizeColor, default all
-#' @param qlimit,qlow,qhigh,pow Parameters for the normalization
+#' @param pow,sds Parameters for the normalization
 #' @param vf Custom value-transforming function
 #' @param density Name of the density column
 #' @param densBins Number of bins for density calculation
@@ -218,7 +230,7 @@ PlotEmbed <- function(embed,
 #' @export
 PlotData <- function(embed,
   fsom, data=fsom$data, cols, names,
-  normalize=cols, qlimit=0, qlow=qlimit, qhigh=1-qlimit, pow=0, vf=PlotId,
+  normalize=cols, pow=0, sds=1, vf=PlotId,
   density='Density', densBins=256, densLimit=NULL, fdens=sqrt
   ) {
   if(dim(embed)[2]!=2) stop ("PlotData only works for 2-dimensional embedding")
@@ -242,15 +254,14 @@ PlotData <- function(embed,
     cols <- colnames(ddf) # you may feel offended but I'm ok. :-/
 
     ncol <- length(normalize)
-    qlow <- rep_len(qlow, ncol)
-    qhigh <- rep_len(qhigh, ncol)
     pow <- rep_len(pow, ncol)
+    sds <- rep_len(sds, ncol)
     vf <- rep_len(c(vf), ncol)
 
     for(i in c(1:length(normalize)))
       ddf[,normalize[i]] <- NormalizeColor(
         vf[[i]](ddf[,normalize[i]]),
-        qlow[i], qhigh[i], pow[i])
+        pow=pow[i], sds=sds[i])
 
     colnames(ddf) <- names
     df <- data.frame(df, ddf)

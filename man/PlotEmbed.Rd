@@ -6,9 +6,10 @@
 \usage{
 PlotEmbed(embed, value = 0, red = 0, green = 0, blue = 0,
   fr = PlotId, fg = PlotId, fb = PlotId, fv = PlotId, powr = 0,
-  powg = 0, powb = 0, powv = 0, clust = NULL, nbin = 256,
-  maxDens = NULL, fdens = sqrt, limit = 0.01, alpha = NULL, fsom,
-  data, col, cluster.colors = ClusterPalette,
+  powg = 0, powb = 0, powv = 0, sdsr = 1, sdsg = 1, sdsb = 1,
+  sdsv = 1, clust = NULL, nbin = 256, maxDens = NULL,
+  fdens = sqrt, limit = NULL, alpha = NULL, fsom, data, col,
+  cluster.colors = ClusterPalette,
   expression.colors = ExpressionPalette,
   na.color = grDevices::rgb(0.75, 0.75, 0.75, if (is.null(alpha)) 0.5
   else alpha/2), plotf = PlotDefault, ...)
@@ -22,13 +23,15 @@ PlotEmbed(embed, value = 0, red = 0, green = 0, blue = 0,
 
 \item{fv, fr, fg, fb}{Functions to transform the values before they are normalized}
 
-\item{powv, powr, powg, powb}{Adjustments of the value plotting}
+\item{powv, powr, powg, powb}{Passed to corresponding 'NormalizeColor' calls as 'pow'}
+
+\item{sdsv, sdsr, sdsg, sdsb}{Passed to 'NormalizeColor' as 'sds'}
 
 \item{clust}{Cluster labels (used as factor)}
 
 \item{nbin, maxDens, fdens}{Parameters of density calculation, see PlotData}
 
-\item{limit}{Low/high offset for NormalizeColor}
+\item{limit}{Low/high offset for 'NormalizeColor' (obsolete, now ignored)}
 
 \item{alpha}{Default alpha value}
 
