@@ -1,6 +1,13 @@
 
 /* This file is part of EmbedSOM.
  *
+ * Copyright (C) 2018-2019 Mirek Kratochvil <exa.exa@gmail.com>
+ *
+ * Based on code from FlowSOM,
+ * Copyright (C) 2016-2019 Sofie Van Gassen et al.
+ *
+ * Originally based on code of Ron Wehrens
+ *
  * EmbedSOM is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option)
@@ -13,9 +20,6 @@
  *
  * You should have received a copy of the GNU General Public License along with
  * EmbedSOM. If not, see <https://www.gnu.org/licenses/>.
- *
- * Taken from FlowSOM, Copyright (C) Sofie Van Gassen (2006-)
- * Originally based on code of Ron Wehrens
  */
 
 static float sqeucl (float* p1, float* p2, int px, int n, int ncodes)
