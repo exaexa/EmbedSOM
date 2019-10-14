@@ -186,6 +186,8 @@ PlotEmbed <- function(embed,
       if(is.null(alpha)) alpha <- 1
       mins <- apply(embed,2,min)
       maxs <- apply(embed,2,max)
+      if(mins[1]==maxs[1]) {mins[1]<-mins[1]-1; maxs[1]<-maxs[1]+1}
+      if(mins[2]==maxs[2]) {mins[2]<-mins[2]-1; maxs[2]<-maxs[2]+1}
       xbin <- cut(embed[,1], mins[1]+(maxs[1]-mins[1])*c(0:nbin)/nbin, labels=FALSE)
       ybin <- cut(embed[,2], mins[2]+(maxs[2]-mins[2])*c(0:nbin)/nbin, labels=FALSE)
 
