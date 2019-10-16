@@ -71,7 +71,7 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
     smooth <- 0
 
   if(is.null(k)) {
-    k <- as.integer(1+sqrt(ncodes))
+    k <- as.integer(1+ncodes^(1/somdim))
   }
 
   if(is.null(adjust)) {
