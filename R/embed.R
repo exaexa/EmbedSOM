@@ -96,9 +96,11 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
     stop("adjust must not be negative!");
   }
 
-  if(!is.null(importance))
-    points <- t(data[,colsUsed] * rep(importance, each=nrow(data)))
-  else
+  if(!is.null(importance)) {
+    if(!is.vector(importance) || length(importance)!=length(colsUsed))
+      stop("Importance must be null, or a vector that matches colsUsed length")
+    points <- t(data[,colsUsed]) * importance
+  } else
     points <- t(data[,colsUsed])
 
   if(length(emcoords)==1) {
@@ -162,17 +164,14 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
   res <- .C("C_embedSOM",
     psomdim=as.integer(somdim),
     pn=as.integer(ndata),
+    pncodes=as.integer(ncodes),
     pdim=as.integer(dim),
+
     pdistf=as.integer(map$distf),
 
     pboost=as.single(boost),
     pneighbors=as.integer(k),
     padjust=as.single(adjust),
-    
-    # the function now relies on the grid being arranged
-    # reasonably, indexed row-by-row. If that changes, it is
-    # necessary to pass in the map$grid as well.
-    pncodes=as.integer(ncodes),
 
     points=as.single(points),
     koho=as.single(codes),

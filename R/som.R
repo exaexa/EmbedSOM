@@ -52,7 +52,7 @@
 
 SOM <- function (data, xdim=10, ydim=10, zdim=NULL, rlen=10,
     alphaA=c(0.05, 0.01), radiusA = stats::quantile(nhbrdist, 0.67) * c(1, 0),
-    alphaB=alphaA*c(-negAlpha,-0.01*negAlpha), radiusB = negRadius*radiusA,
+    alphaB=alphaA*c(-negAlpha,-0.1*negAlpha), radiusB = negRadius*radiusA,
     init=FALSE, initf=Initialize_PCA, distf=2,
     codes=NULL, importance = NULL, nhbr.method='maximum',
     negRadius=1.33, negAlpha=0.1,
@@ -76,8 +76,10 @@ SOM <- function (data, xdim=10, ydim=10, zdim=NULL, rlen=10,
       stop("Incoming data must have correctly named columns")
 
     if(!is.null(importance)){
-        data <- data * rep(importance,each=nrow(data))
-    }
+      if(!is.vector(importance) || length(importance)!=ncol(data))
+        stop("Importance must be null, or a vector of the column-size of data.")
+      points <- t(data) * importance
+    } else points <- t(data)
 
     # Initialize the grid
     if(somdim==2) grid <- expand.grid(seq_len(xdim),seq_len(ydim))
@@ -102,9 +104,11 @@ SOM <- function (data, xdim=10, ydim=10, zdim=NULL, rlen=10,
     if(dim(codes)[1] != nCodes || dim(codes)[2] != ncol(data))
       stop("wrong size of SOM codebook (check column names of data)")
 
+    codes <- t(codes)
+
     # Compute the SOM
     res <- .C("es_C_SOM",
-        data = as.single(data),
+        data = as.single(points),
         codes = as.single(codes),
         nhbrdist = as.single(nhbrdist),
         alphaA = as.single(alphaA),
@@ -112,12 +116,12 @@ SOM <- function (data, xdim=10, ydim=10, zdim=NULL, rlen=10,
         alphaB = as.single(alphaB),
         radiusB = as.single(radiusB),
         n = as.integer(nrow(data)),
-        px = as.integer(ncol(data)),
-        ncodes = as.integer(nCodes),
+        dim = as.integer(ncol(data)),
+        kohos = as.integer(nCodes),
         rlen = as.integer(rlen),
         distf = as.integer(distf))
 
-    codes <- matrix(res$codes, nrow(codes), ncol(codes))
+    codes <- t(matrix(res$codes, nrow(codes), ncol(codes)))
     colnames(codes) <- colnames(data)
 
     if(noMapping) mapping <- NULL
@@ -150,14 +154,17 @@ MapDataToCodes <- function (codes, data, distf=2) {
     if(!all(colsToUse %in% colnames(data)))
       stop("codebook does not match data")
 
+    data <- t(data[,colsToUse])
+    codes <- t(codes)
+
     nnCodes <- .C("es_C_mapDataToCodes",
-        as.single(data[,colsToUse]),
-        as.single(codes),
-        as.integer(nrow(codes)),
-        as.integer(nrow(data)),
-        as.integer(ncol(codes)),
-        nnCodes = integer(nrow(data)),
-        nnDists = double(nrow(data)),
+        points = as.single(data),
+        koho = as.single(codes),
+        pn = as.integer(ncol(data)),
+        pdim = as.integer(nrow(data)),
+        pkohos = as.integer(ncol(codes)),
+        mapping = integer(ncol(data)),
+        dists = double(ncol(data)),
         distf = as.integer(distf))
     cbind(nnCodes$nnCodes, nnCodes$nnDists)
 }

@@ -89,64 +89,40 @@ static void heap_down (dist_id* heap, size_t start, size_t lim)
 	}
 }
 
-extern "C" void C_embedSOM (int* psomdim,
-                            int* pn,
-                            int* pdim,
-                            int* pdist,
-                            float* pboost,
-                            int* pneighbors,
-                            float* padjust,
-                            int* pncodes,
-                            float* points,
-                            float* koho,
-                            float* emcoords,
-                            float* embedding)
+template<class distf, int embed_dim>
+static void embedsom(const size_t n, const size_t kohos, const size_t dim,
+	const float boost, const size_t topn, const float adjust,
+	const float* points,
+	const float* koho,
+	const float* emcoords,
+	float* embedding)
 {
-	size_t topn = *pneighbors;
-	const int somdim = *psomdim;
-	const size_t n = *pn, indim = *pdim, ncodes = *pncodes;
-	float boost = *pboost;
-
-	float (*distf) (float*, float*, int, int, int);
-	if (*pdist == 1) {
-		distf = manh;
-	} else if (*pdist == 2) {
-		distf = sqeucl;
-	} else if (*pdist == 3) {
-		distf = chebyshev;
-	} else {
-		distf = sqeucl;
-	}
-
 	size_t i, j, k;
 
 #ifdef DEBUG_CRASH_ON_FPE
 	feenableexcept (FE_INVALID | FE_OVERFLOW);
 #endif
 
-	if (topn > ncodes) topn = ncodes;
-	if (boost < min_boost) boost = min_boost;
-
 	vector<dist_id> dists;
 	dists.resize (topn);
 
 	float mtx[12]; // only 6 in case of psomdim=2 but who cares
 
-	float* point = points;
-	for (size_t ptid = 0; ptid < n; ++ptid, point += indim) {
+	for (size_t ptid = 0; ptid < n; ++ptid) {
+		const float* point = points+dim*ptid;
 
 		// heap-knn
 		for (i = 0; i < topn; ++i) {
 			dists[i].dist =
-			  distf (point, koho + i * indim, indim, 1, 1);
+			  distf::comp (point, koho + i * dim, dim);
 			dists[i].id = i;
 		}
 
 		for (i = 0; i < topn; ++i)
 			heap_down (dists.data (), topn - i - 1, topn);
 
-		for (i = topn; i < ncodes; ++i) {
-			float s = distf (point, koho + i * indim, indim, 1, 1);
+		for (i = topn; i < kohos; ++i) {
+			float s = distf::comp (point, koho + i * dim, dim);
 			if (dists[0].dist < s) continue;
 			dists[0].dist = s;
 			dists[0].id = i;
@@ -162,7 +138,7 @@ extern "C" void C_embedSOM (int* psomdim,
 		// compute scores
 		float sum = 0, ssum = 0, min = dists[0].dist;
 		for (i = 0; i < topn; ++i) {
-			if (*pdist == 2) dists[i].dist = sqrtf (dists[i].dist);
+			dists[i].dist = distf::back(dists[i].dist);
 			sum += dists[i].dist / (i + 1);
 			ssum += 1 / float(i + 1);
 			if (dists[i].dist < min) min = dists[i].dist;
@@ -174,10 +150,10 @@ extern "C" void C_embedSOM (int* psomdim,
 			dists[i].dist = expf ((dists[i].dist - min) * sum);
 
 		// prepare the matrix for 2x2 linear eqn
-		if (somdim == 2)
+		if (embed_dim == 2)
 			for (i = 0; i < 6; ++i)
 				mtx[i] = 0; // it's stored by columns!
-		if (somdim == 3)
+		if (embed_dim == 3)
 			for (i = 0; i < 12; ++i) mtx[i] = 0;
 
 		for (i = 0; i < topn; ++i) {
@@ -185,24 +161,24 @@ extern "C" void C_embedSOM (int* psomdim,
 			// singularities
 			size_t idx = dists[i].id;
 			float ix, iy, iz;
-			if (somdim == 2) {
+			if (embed_dim == 2) {
 				ix = emcoords[2 * idx + 0];
 				iy = emcoords[2 * idx + 1];
 			}
-			if (somdim == 3) {
+			if (embed_dim == 3) {
 				ix = emcoords[3 * idx + 0];
 				iy = emcoords[3 * idx + 1];
 				iz = emcoords[3 * idx + 2];
 			}
 			float pi = dists[i].dist;
 			float gs = koho_gravity * dists[i].dist;
-			if (somdim == 2) {
+			if (embed_dim == 2) {
 				mtx[0] += gs;
 				mtx[3] += gs;
 				mtx[4] += gs * ix;
 				mtx[5] += gs * iy;
 			}
-			if (somdim == 3) {
+			if (embed_dim == 3) {
 				mtx[0] += gs;
 				mtx[4] += gs;
 				mtx[8] += gs;
@@ -215,11 +191,11 @@ extern "C" void C_embedSOM (int* psomdim,
 
 				size_t jdx = dists[j].id;
 				float jx, jy, jz;
-				if (somdim == 2) {
+				if (embed_dim == 2) {
 					jx = emcoords[2 * jdx + 0];
 					jy = emcoords[2 * jdx + 1];
 				}
-				if (somdim == 3) {
+				if (embed_dim == 3) {
 					jx = emcoords[3 * jdx + 0];
 					jy = emcoords[3 * jdx + 1];
 					jz = emcoords[3 * jdx + 2];
@@ -227,12 +203,13 @@ extern "C" void C_embedSOM (int* psomdim,
 				float pj = dists[j].dist;
 
 				float scalar = 0, sqdist = 0;
-				for (k = 0; k < indim; ++k) {
-					float tmp = koho[k + indim * jdx] -
-					            koho[k + indim * idx];
+				//TODO SIMD
+				for (k = 0; k < dim; ++k) {
+					float tmp = koho[k + dim * jdx] -
+					            koho[k + dim * idx];
 					sqdist += tmp * tmp;
 					scalar += tmp * (point[k] -
-					                 koho[k + indim * idx]);
+					                 koho[k + dim * idx]);
 				}
 
 				if (scalar != 0) {
@@ -242,14 +219,14 @@ extern "C" void C_embedSOM (int* psomdim,
 						scalar /= sqdist;
 				}
 
-				if (somdim == 2) {
+				if (embed_dim == 2) {
 					const float hx = jx - ix;
 					const float hy = jy - iy;
 					const float hpxy = hx * hx + hy * hy;
 					const float ihpxy = 1 / hpxy;
 
 					const float s =
-					  pi * pj / powf (hpxy, *padjust);
+					  pi * pj / powf (hpxy, adjust);
 
 					const float diag = s * hx * hy * ihpxy;
 					const float rhsc =
@@ -264,14 +241,14 @@ extern "C" void C_embedSOM (int* psomdim,
 					mtx[5] += hy * rhsc;
 				}
 
-				if (somdim == 3) {
+				if (embed_dim == 3) {
 					const float hx = jx - ix;
 					const float hy = jy - iy;
 					const float hz = jz - iz;
 					const float hpxyz =
 					  hx * hx + hy * hy + hz * hz;
 					const float s =
-					  pi * pj / powf (hpxyz, *padjust);
+					  pi * pj / powf (hpxyz, adjust);
 					const float ihpxyz = 1 / hpxyz;
 					const float sihpxyz = s * ihpxyz;
 
@@ -297,14 +274,14 @@ extern "C" void C_embedSOM (int* psomdim,
 		}
 
 		// cramer (output is stored R-style by columns)
-		if (somdim == 2) {
+		if (embed_dim == 2) {
 			float det = mtx[0] * mtx[3] - mtx[1] * mtx[2];
 			embedding[ptid] =
 			  (mtx[4] * mtx[3] - mtx[5] * mtx[2]) / det;
 			embedding[ptid + n] =
 			  (mtx[0] * mtx[5] - mtx[1] * mtx[4]) / det;
 		}
-		if (somdim == 3) {
+		if (embed_dim == 3) {
 			float det =
 			  mtx[0] * mtx[4] * mtx[8] + mtx[1] * mtx[5] * mtx[6] +
 			  mtx[2] * mtx[3] * mtx[7] - mtx[0] * mtx[5] * mtx[7] -
@@ -336,6 +313,42 @@ extern "C" void C_embedSOM (int* psomdim,
 #ifdef DEBUG_CRASH_ON_FPE
 	fedisableexcept (FE_INVALID | FE_OVERFLOW);
 #endif
+
+}
+
+extern "C" void C_embedSOM (int* pedim,
+                            int* pn,
+                            int* pkohos,
+                            int* pdim,
+                            int* pdist,
+                            float* pboost,
+                            int* pneighbors,
+                            float* padjust,
+                            float* points,
+                            float* koho,
+                            float* emcoords,
+                            float* embedding)
+{
+	int embeddim = *pedim;
+	size_t n = *pn, dim = *pdim, kohos = *pkohos;
+
+	auto emf=embedsom<distfs::sqeucl,2>;
+	if(embeddim==2) {
+		if(*pdist==1) emf=embedsom<distfs::manh, 2>;
+		if(*pdist==3) emf=embedsom<distfs::chebyshev, 2>;
+	} else if(embeddim==3) {
+		emf=embedsom<distfs::sqeucl,3>;
+		if(*pdist==1) emf=embedsom<distfs::manh, 3>;
+		if(*pdist==3) emf=embedsom<distfs::chebyshev, 3>;
+	} else return; //waat.
+
+	size_t topn=*pneighbors;
+	if(topn>kohos) topn=kohos;
+	float boost=*pboost;
+	if(boost<min_boost) boost=min_boost;
+	emf(n, kohos, dim,
+		*pboost, topn, *padjust,
+		points, koho, emcoords, embedding);
 }
 
 #include "som.h"
