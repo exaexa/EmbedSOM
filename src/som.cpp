@@ -20,8 +20,6 @@
  *
  * You should have received a copy of the GNU General Public License along with
  * EmbedSOM. If not, see <https://www.gnu.org/licenses/>.
- *
- * TODO: convert all ints that should be size_t to size_t
  */
 
 #include "som.h"

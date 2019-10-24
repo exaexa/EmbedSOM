@@ -215,8 +215,9 @@ embedsom(const size_t n,
 				}
 				float pj = dists[j].dist;
 
+
+#ifndef USE_INTRINS
 				float scalar = 0, sqdist = 0;
-				// TODO SIMD
 				for (k = 0; k < dim; ++k) {
 					float tmp = koho[k + dim * jdx] -
 					            koho[k + dim * idx];
@@ -224,6 +225,28 @@ embedsom(const size_t n,
 					scalar += tmp * (point[k] -
 					                 koho[k + dim * idx]);
 				}
+#else
+				float scalar,sqdist;
+				{
+				const float*ki=koho+dim*idx, *kj=koho+dim*jdx, *pp=point, *ke=ki+dim, *kie=ke-3;
+
+				__m128 sca=_mm_setzero_ps(), sqd=_mm_setzero_ps();
+				for(; ki<kie; ki+=4, kj+=4, pp+=4) {
+					__m128 ti=_mm_loadu_ps(ki);
+					__m128 tmp=_mm_sub_ps(_mm_loadu_ps(kj), ti);
+					sqd=_mm_add_ps(sqd, _mm_mul_ps(tmp, tmp));
+					sca=_mm_add_ps(sca, _mm_mul_ps(tmp,
+						_mm_sub_ps(_mm_loadu_ps(pp), ti)));
+				}
+				scalar = sca[0]+sca[1]+sca[2]+sca[3];
+				sqdist = sqd[0]+sqd[1]+sqd[2]+sqd[3];
+				for(; ki<ke; ++ki, ++kj, ++pp) {
+					float tmp=*kj-*ki;
+					sqdist+=tmp*tmp;
+					scalar+=tmp*(*pp-*ki);
+				}
+				}
+#endif
 
 				if (scalar != 0) {
 					if (sqdist == 0)
