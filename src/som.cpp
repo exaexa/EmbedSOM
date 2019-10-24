@@ -34,25 +34,26 @@
 #include <R_ext/Rdynload.h>
 #include <Rmath.h>
 
-#define RANDIN GetRNGstate ()
-#define RANDOUT PutRNGstate ()
-#define UNIF unif_rand ()
+#define RANDIN GetRNGstate()
+#define RANDOUT PutRNGstate()
+#define UNIF unif_rand()
 
-#include "use_intrins.h"
 #include "distfs.h"
+#include "use_intrins.h"
 
 template<class distf>
-static void som (size_t n,
-          size_t k,
-          size_t dim,
-          size_t rlen,
-          const float* points,
-          float* koho,
-          const float* nhbrdist,
-          float alphasA[2],
-          float radiiA[2],
-          float alphasB[2],
-          float radiiB[2])
+static void
+som(size_t n,
+    size_t k,
+    size_t dim,
+    size_t rlen,
+    const float* points,
+    float* koho,
+    const float* nhbrdist,
+    float alphasA[2],
+    float radiiA[2],
+    float alphasB[2],
+    float radiiB[2])
 {
 	size_t niter = rlen * n;
 
@@ -66,19 +67,18 @@ static void som (size_t n,
 
 	for (size_t iter = 0; iter < niter; ++iter) {
 		size_t point = size_t(n * UNIF);
-		if(point>=n)point=0; //careful there.
+		if (point >= n)
+			point = 0; // careful there.
 
-		float riter=iter/(float)niter;
+		float riter = iter / (float)niter;
 
 		size_t nearest = 0;
 		{
-			float nearestd = distf::comp(
-			  points + dim * point, koho, dim);
+			float nearestd =
+			  distf::comp(points + dim * point, koho, dim);
 			for (size_t i = 1; i < k; ++i) {
-				float tmp =
-				  distf::comp(points + dim * point,
-				           koho + dim * i,
-				           dim);
+				float tmp = distf::comp(
+				  points + dim * point, koho + dim * i, dim);
 				if (tmp < nearestd) {
 					nearest = i;
 					nearestd = tmp;
@@ -88,9 +88,8 @@ static void som (size_t n,
 
 		float thresholdA = thresholdA0 + riter * thresholdADiff,
 		      thresholdB = thresholdB0 + riter * thresholdBDiff,
-		      alphaA=alphaA0+riter*alphaADiff,
-		      alphaB=alphaB0+riter*alphaBDiff;
-
+		      alphaA = alphaA0 + riter * alphaADiff,
+		      alphaB = alphaB0 + riter * alphaBDiff;
 
 		for (size_t i = 0; i < k; ++i) {
 			float d = nhbrdist[i + k * nearest];
@@ -98,7 +97,8 @@ static void som (size_t n,
 			float alpha;
 
 			if (d > thresholdA) {
-				if (d > thresholdB) continue;
+				if (d > thresholdB)
+					continue;
 				alpha = alphaB;
 			} else
 				alpha = alphaA;
@@ -109,16 +109,23 @@ static void som (size_t n,
 				  alpha *
 				  (points[j + point * dim] - koho[j + i * dim]);
 #else
-			float* ki=koho+(i*dim), *ke=ki+dim, *kie=ke-3;
-			const float*pi=points+(point*dim);
-			__m128 al=_mm_set1_ps(alpha);
+			float *ki = koho + (i * dim), *ke = ki + dim,
+			      *kie = ke - 3;
+			const float* pi = points + (point * dim);
+			__m128 al = _mm_set1_ps(alpha);
 			__m128 k = _mm_loadu_ps(ki);
-			for(;ki<kie;ki+=4,pi+=4) {
-				__m128 kn=_mm_loadu_ps(ki+4);
-				_mm_storeu_ps(ki, _mm_add_ps(k, _mm_mul_ps(al,_mm_sub_ps(_mm_loadu_ps(pi), k))));
-				k=kn;
+			for (; ki < kie; ki += 4, pi += 4) {
+				__m128 kn = _mm_loadu_ps(ki + 4);
+				_mm_storeu_ps(
+				  ki,
+				  _mm_add_ps(
+				    k,
+				    _mm_mul_ps(
+				      al, _mm_sub_ps(_mm_loadu_ps(pi), k))));
+				k = kn;
 			}
-			for(;ki<ke;++ki,++pi) *ki += alpha*( *pi - *ki );
+			for (; ki < ke; ++ki, ++pi)
+				*ki += alpha * (*pi - *ki);
 #endif
 		}
 	}
@@ -127,23 +134,21 @@ static void som (size_t n,
 }
 
 template<class distf>
-static
-void mapNNs (size_t n,
-                       size_t k,
-                       size_t dim,
-                       const float* points,
-                       const float* koho,
-                       int* mapping,
-		       float* dists)
+static void
+mapNNs(size_t n,
+       size_t k,
+       size_t dim,
+       const float* points,
+       const float* koho,
+       int* mapping,
+       float* dists)
 {
 	for (size_t point = 0; point < n; ++point) {
 		size_t nearest = 0;
-		float nearestd =
-		  distf::comp(points + dim * point, koho, dim);
+		float nearestd = distf::comp(points + dim * point, koho, dim);
 		for (size_t i = 1; i < k; ++i) {
-			float tmp = distf::comp(points + dim * point,
-			                     koho + dim * i,
-			                     dim);
+			float tmp = distf::comp(
+			  points + dim * point, koho + dim * i, dim);
 			if (tmp < nearestd) {
 				nearest = i;
 				nearestd = tmp;
@@ -155,44 +160,58 @@ void mapNNs (size_t n,
 	}
 }
 
-
-
-extern "C" void es_C_SOM (float* points,
-                          float* koho,
-                          float* nhbrdist,
-                          float* alphasA,
-                          float* radiiA,
-                          float* alphasB,
-                          float* radiiB,
-                          Sint* pn,
-                          Sint* pdim,
-                          Sint* pkohos,
-                          Sint* prlen,
-                          Sint* dist)
+extern "C" void
+es_C_SOM(float* points,
+         float* koho,
+         float* nhbrdist,
+         float* alphasA,
+         float* radiiA,
+         float* alphasB,
+         float* radiiB,
+         Sint* pn,
+         Sint* pdim,
+         Sint* pkohos,
+         Sint* prlen,
+         Sint* dist)
 {
 	int n = *pn, dim = *pdim, kohos = *pkohos, rlen = *prlen;
 
-	auto somf=som<distfs::sqeucl>;
-	if (*dist == 1) somf=som<distfs::manh>;
-	else if (*dist == 3) somf=som<distfs::chebyshev>;
+	auto somf = som<distfs::sqeucl>;
+	if (*dist == 1)
+		somf = som<distfs::manh>;
+	else if (*dist == 3)
+		somf = som<distfs::chebyshev>;
 
-	somf(n, kohos, dim, rlen, points, koho, nhbrdist, alphasA, radiiA, alphasB, radiiB);
+	somf(n,
+	     kohos,
+	     dim,
+	     rlen,
+	     points,
+	     koho,
+	     nhbrdist,
+	     alphasA,
+	     radiiA,
+	     alphasB,
+	     radiiB);
 }
 
-extern "C" void es_C_mapDataToCodes (float* points,
-                                     float* koho,
-                                     int* pn,
-                                     int* pdim,
-                                     int* pkohos,
-                                     int* mapping,
-                                     float* dists,
-                                     int* dist)
+extern "C" void
+es_C_mapDataToCodes(float* points,
+                    float* koho,
+                    int* pn,
+                    int* pdim,
+                    int* pkohos,
+                    int* mapping,
+                    float* dists,
+                    int* dist)
 {
 	int n = *pn, dim = *pdim, kohos = *pkohos;
 
-	auto mapf=mapNNs<distfs::sqeucl>;
-	if (*dist == 1) mapf=mapNNs<distfs::manh>;
-	else if (*dist == 3) mapf=mapNNs<distfs::chebyshev>;
+	auto mapf = mapNNs<distfs::sqeucl>;
+	if (*dist == 1)
+		mapf = mapNNs<distfs::manh>;
+	else if (*dist == 3)
+		mapf = mapNNs<distfs::chebyshev>;
 
 	mapf(n, kohos, dim, points, koho, mapping, dists);
 }
