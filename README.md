@@ -81,9 +81,16 @@ EmbedSOM::PlotEmbed(e1, fsom=fs1, xdim=10, ydim=10)
 
 #### What are the color parameters of PlotEmbed?
 
-Please see documentation in `?PlotEmbed`. By default, `PlotEmbed` plots a simple colored representation of cell density. If supplied with a FCS column name (or number), it uses the `matlab2` color scale to plot a single marker expression. Parameters `red`, `green` and `blue` can be used to set column names (or numbers) to mix a RGB color from marker expressions.
+Please see documentation in `?PlotEmbed`. By default, `PlotEmbed` plots a simple colored representation of cell density. If supplied with a FCS column name (or number), it uses the a color scale similar to ColorBrewer's RdYlBu (with improvements for transparent stuff) to plot a single marker expression. Parameters `red`, `green` and `blue` can be used to set column names (or numbers) to mix RGB color from marker expressions.
 
 `PlotEmbed` optionally accepts parameter `col` with a vector of R colors, which, if provided, is just forwarded to the internal `plot` function. For example, use `col=rgb(0,0,0,0.2)` for transparent black cells.
+
+**New!** if you need to mix more nicer colors than just the default RGB, use `ExprColors`.
+
+#### How to plot the gazillions of the tiny points faster?
+#### How to reduce size (and loading time) of the PDFs that contain scatterplots?
+
+Use scattermore: https://github.com/exaexa/scattermore
 
 #### How to select cell subsets from the embedding?
 
@@ -113,7 +120,7 @@ There is now support for 3D SOM grids and 3D embedding. You need the customized 
 
 ```r
 map <- EmbedSOM::SOM(someData, xdim=8, ydim=8, zdim=8)
-embed <- EmbedSOM::EmbedSOM(data=someData, map=map)
+e <- EmbedSOM::EmbedSOM(data=someData, map=map)
 ```
 
 `PlotEmbed` and other functions do not work on 3D `embed` data, but you may use other libraries to display the plots. For example the `plot3D` library:

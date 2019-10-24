@@ -25,5 +25,7 @@ R CMD build ./${TMPDIR}/${N}/ --compact-vignettes
 rm -fr ${TMPDIR}
 
 R CMD check --as-cran ${ARCHIVE}
+# do not forget:
+#R CMD check --as-cran --use-valgrind ${ARCHIVE}
 
 echo "Did you run roxygen?"
