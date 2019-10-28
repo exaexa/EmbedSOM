@@ -117,7 +117,7 @@ embedsom(const size_t n,
 	vector<dist_id> dists;
 	dists.resize(topn);
 
-	float mtx[12]; // only 6 in case of psomdim=2 but who cares
+	float mtx[embed_dim*(1+embed_dim)];
 
 	for (size_t ptid = 0; ptid < n; ++ptid) {
 		const float* point = points + dim * ptid;
@@ -161,13 +161,9 @@ embedsom(const size_t n,
 		for (i = 0; i < topn; ++i)
 			dists[i].dist = expf((dists[i].dist - min) * sum);
 
-		// prepare the matrix for 2x2 linear eqn
-		if (embed_dim == 2)
-			for (i = 0; i < 6; ++i)
-				mtx[i] = 0; // it's stored by columns!
-		if (embed_dim == 3)
-			for (i = 0; i < 12; ++i)
-				mtx[i] = 0;
+		// prepare the eqn matrix
+		for (i = 0; i < embed_dim*(1+embed_dim); ++i)
+			mtx[i] = 0;
 
 		for (i = 0; i < topn; ++i) {
 			// add a really tiny influence of the point to prevent
