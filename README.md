@@ -134,3 +134,16 @@ Interactive rotatable and zoomable plots can be viewed using the `rgl` library:
 ```r
 rgl::points3d(x=e[,1], y=e[,2], z=e[,3])
 ```
+
+#### What to do if embedding takes too long?
+#### How to activate the SIMD support?
+
+EmbedSOM has support for SIMD-assisted computation of both SOM and the embedding. If your CPU can work with SSE4 instructions (almost every `amd64` (a.k.a. `x64` a.k.a. `x86_64`) CPU built after around 2013 can do that), just tell R to compile your code with correct C++ flags, and SOM+EmbedSOM computation should get a bit faster! (in fact, usually at least around 3x faster, depending on the CPU and dataset shape).
+
+First, add a correct line to the R `Makevars` config file:
+```sh
+ $ cat ~/.R/Makevars
+CXXFLAGS += -O3 -march=native
+```
+
+After reinstalling EmbedSOM, SIMD code will be used by default.
