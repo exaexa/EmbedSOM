@@ -166,7 +166,7 @@ MapDataToCodes <- function (codes, data, distf=2) {
         mapping = integer(ncol(data)),
         dists = single(ncol(data)),
         distf = as.integer(distf))
-    cbind(nnCodes$mapping, nnCodes$dists)
+    cbind(1+nnCodes$mapping, nnCodes$dists)
 }
 
 #' Create a grid from first 2 PCA components
