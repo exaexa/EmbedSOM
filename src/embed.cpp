@@ -117,7 +117,7 @@ embedsom(const size_t n,
 	vector<dist_id> dists;
 	dists.resize(topn);
 
-	float mtx[embed_dim*(1+embed_dim)];
+	float mtx[embed_dim * (1 + embed_dim)];
 
 	for (size_t ptid = 0; ptid < n; ++ptid) {
 		const float* point = points + dim * ptid;
@@ -147,7 +147,8 @@ embedsom(const size_t n,
 		}
 
 		// compute scores
-		float sum = 0, ssum = 0, min = distf::back(dists[0].dist), max=distf::back(dists[topn-1].dist);
+		float sum = 0, ssum = 0, min = distf::back(dists[0].dist),
+		      max = distf::back(dists[topn - 1].dist);
 		for (i = 0; i < topn; ++i) {
 			dists[i].dist = distf::back(dists[i].dist);
 			sum += dists[i].dist / (i + 1);
@@ -157,13 +158,14 @@ embedsom(const size_t n,
 		sum = -ssum / (zero_avoidance + sum * boost);
 
 		for (i = 0; i < topn; ++i)
-			dists[i].dist = expf((dists[i].dist - min) * sum) * (1-expf(dists[i].dist-max));
+			dists[i].dist = expf((dists[i].dist - min) * sum) *
+			                (1 - expf(dists[i].dist - max));
 
 		// prepare the eqn matrix
-		for (i = 0; i < embed_dim*(1+embed_dim); ++i)
+		for (i = 0; i < embed_dim * (1 + embed_dim); ++i)
 			mtx[i] = 0;
 
-		for (i = 0; i < topn-1; ++i) {
+		for (i = 0; i < topn - 1; ++i) {
 			// add a really tiny influence of the point to prevent
 			// singularities
 			size_t idx = dists[i].id;
@@ -194,7 +196,7 @@ embedsom(const size_t n,
 				mtx[11] += gs * iz;
 			}
 
-			for (j = i + 1; j < topn-1; ++j) {
+			for (j = i + 1; j < topn - 1; ++j) {
 
 				size_t jdx = dists[j].id;
 				float jx, jy, jz;
@@ -209,7 +211,6 @@ embedsom(const size_t n,
 				}
 				float pj = dists[j].dist;
 
-
 #ifndef USE_INTRINS
 				float scalar = 0, sqdist = 0;
 				for (k = 0; k < dim; ++k) {
@@ -220,25 +221,38 @@ embedsom(const size_t n,
 					                 koho[k + dim * idx]);
 				}
 #else
-				float scalar,sqdist;
+				float scalar, sqdist;
 				{
-				const float*ki=koho+dim*idx, *kj=koho+dim*jdx, *pp=point, *ke=ki+dim, *kie=ke-3;
+					const float *ki = koho + dim * idx,
+					            *kj = koho + dim * jdx,
+					            *pp = point, *ke = ki + dim,
+					            *kie = ke - 3;
 
-				__m128 sca=_mm_setzero_ps(), sqd=_mm_setzero_ps();
-				for(; ki<kie; ki+=4, kj+=4, pp+=4) {
-					__m128 ti=_mm_loadu_ps(ki);
-					__m128 tmp=_mm_sub_ps(_mm_loadu_ps(kj), ti);
-					sqd=_mm_add_ps(sqd, _mm_mul_ps(tmp, tmp));
-					sca=_mm_add_ps(sca, _mm_mul_ps(tmp,
-						_mm_sub_ps(_mm_loadu_ps(pp), ti)));
-				}
-				scalar = sca[0]+sca[1]+sca[2]+sca[3];
-				sqdist = sqd[0]+sqd[1]+sqd[2]+sqd[3];
-				for(; ki<ke; ++ki, ++kj, ++pp) {
-					float tmp=*kj-*ki;
-					sqdist+=tmp*tmp;
-					scalar+=tmp*(*pp-*ki);
-				}
+					__m128 sca = _mm_setzero_ps(),
+					       sqd = _mm_setzero_ps();
+					for (; ki < kie;
+					     ki += 4, kj += 4, pp += 4) {
+						__m128 ti = _mm_loadu_ps(ki);
+						__m128 tmp = _mm_sub_ps(
+						  _mm_loadu_ps(kj), ti);
+						sqd = _mm_add_ps(
+						  sqd, _mm_mul_ps(tmp, tmp));
+						sca = _mm_add_ps(
+						  sca,
+						  _mm_mul_ps(
+						    tmp,
+						    _mm_sub_ps(_mm_loadu_ps(pp),
+						               ti)));
+					}
+					scalar =
+					  sca[0] + sca[1] + sca[2] + sca[3];
+					sqdist =
+					  sqd[0] + sqd[1] + sqd[2] + sqd[3];
+					for (; ki < ke; ++ki, ++kj, ++pp) {
+						float tmp = *kj - *ki;
+						sqdist += tmp * tmp;
+						scalar += tmp * (*pp - *ki);
+					}
 				}
 #endif
 
