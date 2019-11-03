@@ -157,7 +157,7 @@ embedsom(const size_t n,
 		sum = -ssum / (zero_avoidance + sum * boost);
 
 		for (i = 0; i < topn; ++i)
-			dists[i].dist = expf((dists[i].dist - min) * sum) - expf((max-min)*sum);
+			dists[i].dist = expf((dists[i].dist - min) * sum) * (1-expf(dists[i].dist-max));
 
 		// prepare the eqn matrix
 		for (i = 0; i < embed_dim*(1+embed_dim); ++i)
