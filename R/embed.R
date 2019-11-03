@@ -84,8 +84,8 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
 
   boost <- ((1+sqrt(5))/2)^(smooth-2)
 
-  if (k<1+somdim) {
-    stop(paste("Use at least",somdim+1,"neighbors for sane results!"))
+  if (k < 2+somdim) {
+    stop(paste("Use at least", 2+somdim, "neighbors for sane results!"))
   }
 
   if (k>ncodes) {

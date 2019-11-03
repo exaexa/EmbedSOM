@@ -147,25 +147,23 @@ embedsom(const size_t n,
 		}
 
 		// compute scores
-		float sum = 0, ssum = 0, min = distf::back(dists[0].dist);
+		float sum = 0, ssum = 0, min = distf::back(dists[0].dist), max=distf::back(dists[topn-1].dist);
 		for (i = 0; i < topn; ++i) {
 			dists[i].dist = distf::back(dists[i].dist);
 			sum += dists[i].dist / (i + 1);
 			ssum += 1 / float(i + 1);
-			if (dists[i].dist < min)
-				min = dists[i].dist;
 		}
 
 		sum = -ssum / (zero_avoidance + sum * boost);
 
 		for (i = 0; i < topn; ++i)
-			dists[i].dist = expf((dists[i].dist - min) * sum);
+			dists[i].dist = expf((dists[i].dist - min) * sum) - expf((max-min)*sum);
 
 		// prepare the eqn matrix
 		for (i = 0; i < embed_dim*(1+embed_dim); ++i)
 			mtx[i] = 0;
 
-		for (i = 0; i < topn; ++i) {
+		for (i = 0; i < topn-1; ++i) {
 			// add a really tiny influence of the point to prevent
 			// singularities
 			size_t idx = dists[i].id;
@@ -196,7 +194,7 @@ embedsom(const size_t n,
 				mtx[11] += gs * iz;
 			}
 
-			for (j = i + 1; j < topn; ++j) {
+			for (j = i + 1; j < topn-1; ++j) {
 
 				size_t jdx = dists[j].id;
 				float jx, jy, jz;
