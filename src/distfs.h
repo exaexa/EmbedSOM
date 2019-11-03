@@ -58,6 +58,7 @@ struct sqeucl
 	}
 };
 
+#ifdef USE_INTRINS
 inline static __m128
 abs_mask(void)
 {
@@ -69,6 +70,7 @@ vec_abs(__m128 v)
 {
 	return _mm_and_ps(abs_mask(), v);
 }
+#endif
 
 struct manh
 {
