@@ -147,7 +147,7 @@ embedsom(const size_t n,
 		}
 
 		// compute scores
-		float sum = 0, ssum = 0, min = dists[0].dist;
+		float sum = 0, ssum = 0, min = distf::back(dists[0].dist);
 		for (i = 0; i < topn; ++i) {
 			dists[i].dist = distf::back(dists[i].dist);
 			sum += dists[i].dist / (i + 1);
