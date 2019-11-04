@@ -271,12 +271,10 @@ embedsom(const size_t n,
 				}
 #endif
 
-				if (scalar != 0) {
-					if (sqdist == 0)
-						continue;
-					else
-						scalar /= sqdist;
-				}
+				if (sqdist == 0)
+					continue;
+				else
+					scalar /= sqdist;
 
 				if (embed_dim == 2) {
 					const float hx = jx - ix;
@@ -287,7 +285,8 @@ embedsom(const size_t n,
 					const float ihpxy = 1 / hpxy;
 
 					const float s =
-					  pi * pj / powf(1 + hpxy, adjust);
+					  pi * pj * powf(1 + hpxy, -adjust) *
+					  expf(-sqrf(scalar - .5));
 					const float sihpxy = s * ihpxy;
 
 					const float diag = s * hx * hy * ihpxy;
@@ -314,7 +313,8 @@ embedsom(const size_t n,
 					const float ihpxyz = 1 / hpxyz;
 
 					const float s =
-					  pi * pj / powf(1 + hpxyz, adjust);
+					  pi * pj * powf(1 + hpxyz, -adjust) *
+					  expf(-sqrf(scalar - .5));
 					const float sihpxyz = s * ihpxyz;
 
 					const float rhsc =
