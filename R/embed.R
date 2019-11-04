@@ -78,11 +78,11 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
     adjust <- 1
   }
 
-  if (smooth< -30) {
-    stop("Value of smooth must be at least -30.")
+  if (smooth < -3) {
+    stop("Value of smooth must be at least -3.")
   }
 
-  boost <- ((1+sqrt(5))/2)^(smooth-2)
+  boost <- exp(-smooth-1)
 
   if (k < 2+somdim) {
     stop(paste("Use at least", 2+somdim, "neighbors for sane results!"))

@@ -37,13 +37,16 @@
 using namespace std;
 
 // some small numbers first!
-static const float min_boost = 0.00001; // lower limit for the parameter
+static const float min_boost = 1e-5; // lower limit for the parameter
+
+// this affects how steeply the score decreases for near-farthest codes
+static const float max_avoidance = 10;
 
 // this is added before normalizing the distances
-static const float zero_avoidance = 0.00000000001;
+static const float zero_avoidance = 1e-10;
 
 // a tiny epsilon for preventing singularities
-static const float koho_gravity = 0.00001;
+static const float koho_gravity = 1e-5;
 
 static inline float
 sqrf(float n)
@@ -109,13 +112,14 @@ embedsom(const size_t n,
          float* embedding)
 {
 	size_t i, j, k;
+	const size_t topnn = topn < kohos ? topn + 1 : topn;
 
 #ifdef DEBUG_CRASH_ON_FPE
 	feenableexcept(FE_INVALID | FE_OVERFLOW);
 #endif
 
 	vector<dist_id> dists;
-	dists.resize(topn);
+	dists.resize(topnn);
 
 	float mtx[embed_dim * (1 + embed_dim)];
 
@@ -123,49 +127,60 @@ embedsom(const size_t n,
 		const float* point = points + dim * ptid;
 
 		// heap-knn
-		for (i = 0; i < topn; ++i) {
+		for (i = 0; i < topnn; ++i) {
 			dists[i].dist = distf::comp(point, koho + i * dim, dim);
 			dists[i].id = i;
 		}
 
-		for (i = 0; i < topn; ++i)
-			heap_down(dists.data(), topn - i - 1, topn);
+		for (i = 0; i < topnn; ++i)
+			heap_down(dists.data(), topnn - i - 1, topnn);
 
-		for (i = topn; i < kohos; ++i) {
+		for (i = topnn; i < kohos; ++i) {
 			float s = distf::comp(point, koho + i * dim, dim);
 			if (dists[0].dist < s)
 				continue;
 			dists[0].dist = s;
 			dists[0].id = i;
-			heap_down(dists.data(), 0, topn);
+			heap_down(dists.data(), 0, topnn);
 		}
 
 		// heapsort the result
-		for (i = topn - 1; i > 0; --i) {
+		for (i = topnn - 1; i > 0; --i) {
 			hswap(dists[0], dists[i]);
 			heap_down(dists.data(), 0, i);
 		}
 
-		// compute scores
-		float sum = 0, ssum = 0, min = distf::back(dists[0].dist),
-		      max = distf::back(dists[topn - 1].dist);
-		for (i = 0; i < topn; ++i) {
-			dists[i].dist = distf::back(dists[i].dist);
-			sum += dists[i].dist / (i + 1);
-			ssum += 1 / float(i + 1);
+		// compute distance distribution (assume normal b/c why not)
+		float mean = 0, sd = 0, wsum = 0;
+		for (i = 0; i < topnn; ++i) {
+			const float tmp = distf::back(dists[i].dist);
+			const float w = 1 / float(i + 1);
+			mean += tmp * w;
+			sd += tmp * tmp * w;
+			wsum += w;
+			dists[i].dist = tmp;
 		}
 
-		sum = -ssum / (zero_avoidance + sum * boost);
+		mean /= wsum;
+		sd = boost / sqrtf(sd / wsum - sqrf(mean));
+		const float nmax = max_avoidance / dists[topnn - 1].dist;
 
+		// get the score!
 		for (i = 0; i < topn; ++i)
-			dists[i].dist = expf((dists[i].dist - min) * sum) *
-			                (1 - expf(dists[i].dist - max));
+			if (topn < topnn)
+				dists[i].dist =
+				  expf((mean - dists[i].dist) * sd) *
+				  (1 -
+				   expf(dists[i].dist * nmax - max_avoidance));
+			else
+				dists[i].dist =
+				  expf((mean - dists[i].dist) * sd);
 
 		// prepare the eqn matrix
 		for (i = 0; i < embed_dim * (1 + embed_dim); ++i)
 			mtx[i] = 0;
 
-		for (i = 0; i < topn - 1; ++i) {
+		for (i = 0; i < topn; ++i) {
 			// add a really tiny influence of the point to prevent
 			// singularities
 			size_t idx = dists[i].id;
@@ -196,7 +211,7 @@ embedsom(const size_t n,
 				mtx[11] += gs * iz;
 			}
 
-			for (j = i + 1; j < topn - 1; ++j) {
+			for (j = i + 1; j < topn; ++j) {
 
 				size_t jdx = dists[j].id;
 				float jx, jy, jz;
