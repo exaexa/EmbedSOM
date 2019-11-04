@@ -267,20 +267,23 @@ embedsom(const size_t n,
 					const float hx = jx - ix;
 					const float hy = jy - iy;
 					const float hpxy = hx * hx + hy * hy;
+					if (hpxy < zero_avoidance)
+						continue;
 					const float ihpxy = 1 / hpxy;
 
 					const float s =
-					  pi * pj / powf(hpxy, adjust);
+					  pi * pj / powf(1 + hpxy, adjust);
+					const float sihpxy = s * ihpxy;
 
 					const float diag = s * hx * hy * ihpxy;
 					const float rhsc =
 					  s * (scalar +
 					       (hx * ix + hy * iy) * ihpxy);
 
-					mtx[0] += s * hx * hx * ihpxy;
-					mtx[1] += diag;
-					mtx[2] += diag;
-					mtx[3] += s * hy * hy * ihpxy;
+					mtx[0] += hx * hx * sihpxy;
+					mtx[1] += hx * hy * sihpxy;
+					mtx[2] += hy * hx * sihpxy;
+					mtx[3] += hy * hy * sihpxy;
 					mtx[4] += hx * rhsc;
 					mtx[5] += hy * rhsc;
 				}
@@ -291,9 +294,12 @@ embedsom(const size_t n,
 					const float hz = jz - iz;
 					const float hpxyz =
 					  hx * hx + hy * hy + hz * hz;
-					const float s =
-					  pi * pj / powf(hpxyz, adjust);
+					if (hpxyz < zero_avoidance)
+						continue;
 					const float ihpxyz = 1 / hpxyz;
+
+					const float s =
+					  pi * pj / powf(1 + hpxyz, adjust);
 					const float sihpxyz = s * ihpxyz;
 
 					const float rhsc =
@@ -301,15 +307,15 @@ embedsom(const size_t n,
 					       (hx * ix + hy * iy + hz * iz) *
 					         ihpxyz);
 
-					mtx[0] += sihpxyz * hx * hx;
-					mtx[1] += sihpxyz * hx * hy;
-					mtx[2] += sihpxyz * hx * hz;
-					mtx[3] += sihpxyz * hy * hx;
-					mtx[4] += sihpxyz * hy * hy;
-					mtx[5] += sihpxyz * hy * hz;
-					mtx[6] += sihpxyz * hz * hx;
-					mtx[7] += sihpxyz * hz * hy;
-					mtx[8] += sihpxyz * hz * hz;
+					mtx[0] += hx * hx * sihpxyz;
+					mtx[1] += hx * hy * sihpxyz;
+					mtx[2] += hx * hz * sihpxyz;
+					mtx[3] += hy * hx * sihpxyz;
+					mtx[4] += hy * hy * sihpxyz;
+					mtx[5] += hy * hz * sihpxyz;
+					mtx[6] += hz * hx * sihpxyz;
+					mtx[7] += hz * hy * sihpxyz;
+					mtx[8] += hz * hz * sihpxyz;
 					mtx[9] += hx * rhsc;
 					mtx[10] += hy * rhsc;
 					mtx[11] += hz * rhsc;
