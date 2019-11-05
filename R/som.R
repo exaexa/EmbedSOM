@@ -121,7 +121,7 @@ SOM <- function (data, xdim=10, ydim=10, zdim=NULL, rlen=10,
         rlen = as.integer(rlen),
         distf = as.integer(distf))
 
-    codes <- t(matrix(res$codes, nrow(codes), ncol(codes)))
+    codes <- matrix(res$codes, byrow=T, nrow=ncol(codes), ncol=nrow(codes))
     colnames(codes) <- colnames(data)
 
     if(noMapping) mapping <- NULL

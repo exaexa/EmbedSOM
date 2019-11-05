@@ -180,6 +180,7 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
     embedding=as.single(embedding))
 
   matrix(res$embedding,
+    byrow=T,
     nrow=nrow(data),
     ncol=somdim,
     dimnames=list(NULL,paste0('EmbedSOM',1:somdim)))

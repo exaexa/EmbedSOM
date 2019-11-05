@@ -22,8 +22,6 @@
 #include <cmath>
 #include <vector>
 
-#include <iostream>
-
 // this helps with debugging floating-point overflows and similar nastiness,
 // uncomment if needed.
 //#define DEBUG_CRASH_ON_FPE
@@ -341,9 +339,9 @@ embedsom(const size_t n,
 		// cramer (output is stored R-style by columns)
 		if (embed_dim == 2) {
 			float det = mtx[0] * mtx[3] - mtx[1] * mtx[2];
-			embedding[ptid] =
+			embedding[ptid * 2] =
 			  (mtx[4] * mtx[3] - mtx[5] * mtx[2]) / det;
-			embedding[ptid + n] =
+			embedding[ptid * 2 + 1] =
 			  (mtx[0] * mtx[5] - mtx[1] * mtx[4]) / det;
 		}
 		if (embed_dim == 3) {
@@ -351,21 +349,21 @@ embedsom(const size_t n,
 			  mtx[0] * mtx[4] * mtx[8] + mtx[1] * mtx[5] * mtx[6] +
 			  mtx[2] * mtx[3] * mtx[7] - mtx[0] * mtx[5] * mtx[7] -
 			  mtx[1] * mtx[3] * mtx[8] - mtx[2] * mtx[4] * mtx[6];
-			embedding[ptid] = (mtx[9] * mtx[4] * mtx[8] +
-			                   mtx[10] * mtx[5] * mtx[6] +
-			                   mtx[11] * mtx[3] * mtx[7] -
-			                   mtx[9] * mtx[5] * mtx[7] -
-			                   mtx[10] * mtx[3] * mtx[8] -
-			                   mtx[11] * mtx[4] * mtx[6]) /
-			                  det;
-			embedding[ptid + n] = (mtx[0] * mtx[10] * mtx[8] +
-			                       mtx[1] * mtx[11] * mtx[6] +
-			                       mtx[2] * mtx[9] * mtx[7] -
-			                       mtx[0] * mtx[11] * mtx[7] -
-			                       mtx[1] * mtx[9] * mtx[8] -
-			                       mtx[2] * mtx[10] * mtx[6]) /
+			embedding[ptid * 3] = (mtx[9] * mtx[4] * mtx[8] +
+			                       mtx[10] * mtx[5] * mtx[6] +
+			                       mtx[11] * mtx[3] * mtx[7] -
+			                       mtx[9] * mtx[5] * mtx[7] -
+			                       mtx[10] * mtx[3] * mtx[8] -
+			                       mtx[11] * mtx[4] * mtx[6]) /
 			                      det;
-			embedding[ptid + 2 * n] = (mtx[0] * mtx[4] * mtx[11] +
+			embedding[ptid * 3 + 1] = (mtx[0] * mtx[10] * mtx[8] +
+			                           mtx[1] * mtx[11] * mtx[6] +
+			                           mtx[2] * mtx[9] * mtx[7] -
+			                           mtx[0] * mtx[11] * mtx[7] -
+			                           mtx[1] * mtx[9] * mtx[8] -
+			                           mtx[2] * mtx[10] * mtx[6]) /
+			                          det;
+			embedding[ptid * 3 + 2] = (mtx[0] * mtx[4] * mtx[11] +
 			                           mtx[1] * mtx[5] * mtx[9] +
 			                           mtx[2] * mtx[3] * mtx[10] -
 			                           mtx[0] * mtx[5] * mtx[10] -
