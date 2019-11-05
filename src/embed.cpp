@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
+#include <thread>
 #include <vector>
 
 // this helps with debugging floating-point overflows and similar nastiness,
@@ -96,9 +97,10 @@ heap_down(dist_id* heap, size_t start, size_t lim)
 	}
 }
 
-template<class distf, int embed_dim>
+template<class distf, int embed_dim, bool threaded>
 static void
-embedsom(const size_t n,
+embedsom(const size_t threads,
+         const size_t n,
          const size_t kohos,
          const size_t dim,
          const float boost,
@@ -109,6 +111,35 @@ embedsom(const size_t n,
          const float* emcoords,
          float* embedding)
 {
+	if (threaded) {
+		vector<thread> ts(threads);
+		for (size_t i = 0; i < threads; ++i)
+			ts[i] = thread(
+			  [&](size_t thread_id) {
+				  size_t dbegin = thread_id * n / threads,
+				         dend = (thread_id + 1) * n / threads;
+				  const float* d = points + dbegin * dim;
+				  float* e = embedding + dbegin * embed_dim;
+				  size_t nd = dend - dbegin;
+
+				  embedsom<distf, embed_dim, false>(1,
+				                                    nd,
+				                                    kohos,
+				                                    dim,
+				                                    boost,
+				                                    topn,
+				                                    adjust,
+				                                    d,
+				                                    koho,
+				                                    emcoords,
+				                                    e);
+			  },
+			  i);
+		for (auto& t : ts)
+			t.join();
+		return;
+	}
+
 	size_t i, j, k;
 	const size_t topnn = topn < kohos ? topn + 1 : topn;
 
@@ -379,7 +410,8 @@ embedsom(const size_t n,
 }
 
 extern "C" void
-C_embedSOM(int* pedim,
+C_embedSOM(int* pnthreads,
+           int* pedim,
            int* pn,
            int* pkohos,
            int* pdim,
@@ -395,20 +427,44 @@ C_embedSOM(int* pedim,
 	int embeddim = *pedim;
 	size_t n = *pn, dim = *pdim, kohos = *pkohos;
 
-	auto emf = embedsom<distfs::sqeucl, 2>;
-	if (embeddim == 2) {
-		if (*pdist == 1)
-			emf = embedsom<distfs::manh, 2>;
-		if (*pdist == 3)
-			emf = embedsom<distfs::chebyshev, 2>;
-	} else if (embeddim == 3) {
-		emf = embedsom<distfs::sqeucl, 3>;
-		if (*pdist == 1)
-			emf = embedsom<distfs::manh, 3>;
-		if (*pdist == 3)
-			emf = embedsom<distfs::chebyshev, 3>;
-	} else
-		return; // waat.
+	int threads = *pnthreads;
+
+	if (threads < 0)
+		threads = 1;
+	if (threads == 0)
+		threads = thread::hardware_concurrency();
+
+	auto emf = threads == 1 ? embedsom<distfs::sqeucl, 2, false>
+	                        : embedsom<distfs::sqeucl, 2, true>;
+	if (threads == 1) {
+		if (embeddim == 2) {
+			if (*pdist == 1)
+				emf = embedsom<distfs::manh, 2, false>;
+			if (*pdist == 3)
+				emf = embedsom<distfs::chebyshev, 2, false>;
+		} else if (embeddim == 3) {
+			emf = embedsom<distfs::sqeucl, 3, false>;
+			if (*pdist == 1)
+				emf = embedsom<distfs::manh, 3, false>;
+			if (*pdist == 3)
+				emf = embedsom<distfs::chebyshev, 3, false>;
+		} else
+			return; // waat.
+	} else {
+		if (embeddim == 2) {
+			if (*pdist == 1)
+				emf = embedsom<distfs::manh, 2, true>;
+			if (*pdist == 3)
+				emf = embedsom<distfs::chebyshev, 2, true>;
+		} else if (embeddim == 3) {
+			emf = embedsom<distfs::sqeucl, 3, true>;
+			if (*pdist == 1)
+				emf = embedsom<distfs::manh, 3, true>;
+			if (*pdist == 3)
+				emf = embedsom<distfs::chebyshev, 3, true>;
+		} else
+			return; // waat.
+	}
 
 	size_t topn = *pneighbors;
 	if (topn > kohos)
@@ -416,7 +472,8 @@ C_embedSOM(int* pedim,
 	float boost = *pboost;
 	if (boost < min_boost)
 		boost = min_boost;
-	emf(n,
+	emf(threads,
+	    n,
 	    kohos,
 	    dim,
 	    *pboost,
@@ -434,7 +491,7 @@ C_embedSOM(int* pedim,
 #include <Rmath.h>
 
 static const R_CMethodDef cMethods[] = {
-	{ "C_embedSOM", (DL_FUNC)&C_embedSOM, 12 },
+	{ "C_embedSOM", (DL_FUNC)&C_embedSOM, 13 },
 	{ "es_C_SOM", (DL_FUNC)&es_C_SOM, 12 },
 	{ "es_C_mapDataToCodes", (DL_FUNC)&es_C_mapDataToCodes, 8 },
 	{ NULL, NULL, 0 }

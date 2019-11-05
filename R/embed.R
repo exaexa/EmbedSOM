@@ -26,6 +26,8 @@
 #' @param importance Importance of dimensions that was used to train the SOM
 #' @param emcoords Either a matrix of embedded coordinates (same number of rows as map$coords, and either 2 or 3 columns depending on the SOM grid dimension), or one of 'flat' (default behavior), 'som' (adjust the SOM coords according to U-matrix distances), 'mst' (embed to MST-like structure), 'fsom-mst' (embed to MST that should look exactly like that of FlowSOM), 'tsne' (embed using tSNE from package Rtsne), 'umap' (embed using UMAP from package umap) or 'uwot::umap' (embed using UMAP from package uwot)
 #' @param emcoords.pow Exaggeration factor (power) of the distances in U-matrix used for some methods of auto-generating emcoords; default 1.
+#' @param threads Number of threads used for computation, 0 chooses hardware concurrency, 1 (default) turns off parallelization.
+#' @param parallel Boolean flag whether the computation should be parallelized (this flag is just a nice name for 'threads' and does not do anything directly -- default FALSE sets threads=1, TRUE sets threads=0)
 #' @return matrix with 2D or 3D coordinates of the embedded cels, depending on the map
 #'
 #' @examples
@@ -39,7 +41,8 @@
 
 EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
                      data=NULL, map=NULL, importance=NULL,
-                     emcoords='flat', emcoords.pow=1) {
+                     emcoords='flat', emcoords.pow=1,
+                     parallel=F, threads=if (parallel) 0 else 1) {
 
   if(is.null(map)) {
     if(is.null(fsom)) {
@@ -159,9 +162,11 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
   codes <- t(map$codes)
   emcoords <- t(emcoords)
 
-  embedding <- matrix(0, nrow=nrow(data), ncol=somdim)
+  embedding <- matrix(0, ncol=nrow(data), nrow=somdim)
 
   res <- .C("C_embedSOM",
+    pnthreads=as.integer(threads),
+
     psomdim=as.integer(somdim),
     pn=as.integer(ndata),
     pncodes=as.integer(ncodes),
