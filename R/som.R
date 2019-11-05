@@ -25,14 +25,16 @@
 #' @param xdim  Width of the grid
 #' @param ydim  Hight of the grid
 #' @param zdim  Depth of the grid, causes grid to be 3D
-#' @param rlen  Number of times to loop over the training data for each MST
-#' @param alphaA Start and end learning rate
-#' @param alphaB Start and end learning rate for the second radius
+#' @param batch Use batch training (default FALSE chooses online training, more compatible with FlowSOM)
+#' @param rlen  Number of training epochs; or number of times to loop over the training data in online training
+#' @param alphaA Start and end learning rate for online learning (only for online training)
+#' @param alphaB Start and end learning rate for the second radius (only for online training)
 #' @param radiusA Start and end radius
-#' @param radiusB Start and end radius (make sure it's larger than radiusA)
+#' @param radiusB Start and end radius (only for online training; make sure it's larger than radiusA)
 #' @param negRadius easy way to set radiusB as a multiple of default radius
 #'                  (use lower value for higher dimensions)
 #' @param negAlpha the same for alphaB
+#' @param epochRadii Vector of length 'rlen' with precise epoch radii (only for batch training)
 #' @param init  Initialize cluster centers in a non-random way
 #' @param initf Use the given initialization function if init==T
 #'              (default: Initialize_PCA)
@@ -42,8 +44,8 @@
 #'                   according to importance
 #' @param nhbr.method Way of computing grid distances, passed as method= to dist() function. Default 'maximum' (square neighborhoods); use 'euclidean' for round neighborhoods.
 #' @param noMapping If true, do not produce mapping (default F). Useful for online/streaming use.
-#' @param threads No effect here, passed to 'MapDataToCodes'.
-#' @param parallel No effect here, passed to 'MapDataToCodes'. Defaults to FALSE. This function implements online SOM learning; use 'BatchSOM' for fully parallelized version.
+#' @param threads Number of threads of batch training (has no effect on online training). Defaults to 0 (chooses maximum available hardware threads) if parallel=TRUE or 1 (single thread) if parallel=FALSE. Passed to 'MapDataToCodes'.
+#' @param parallel Parallelize batch training (has no effect on online training) by setting appropriate 'threads'. Defaults to FALSE. Use 'batch=T' for fully parallelized version, online training is not parallelizable. Passed to 'MapDataToCodes'.
 #' @return A map, which is a list containing all parameter settings and results
 #'
 #' @seealso FlowSOM::SOM
@@ -51,9 +53,10 @@
 #' @useDynLib EmbedSOM, .registration = TRUE
 #' @export
 
-SOM <- function (data, xdim=10, ydim=10, zdim=NULL, rlen=10,
-    alphaA=c(0.05, 0.01), radiusA = stats::quantile(nhbrdist, 0.67) * c(1, 0),
+SOM <- function (data, xdim=10, ydim=10, zdim=NULL, batch=F, rlen=10,
+    alphaA=c(0.05, 0.01), radiusA=stats::quantile(nhbrdist, 0.67) * c(1, 0),
     alphaB=alphaA*c(-negAlpha,-0.1*negAlpha), radiusB = negRadius*radiusA,
+    epochRadii=seq(radiusA[1], radiusA[2], length.out=rlen),
     init=FALSE, initf=Initialize_PCA, distf=2,
     codes=NULL, importance = NULL, nhbr.method='maximum',
     negRadius=1.33, negAlpha=0.1,
@@ -101,32 +104,46 @@ SOM <- function (data, xdim=10, ydim=10, zdim=NULL, rlen=10,
     # Initialize the neighbourhood
     nhbrdist <- as.matrix(stats::dist(grid, method = nhbr.method))
 
-    # validate size of data matrices that go into C
+    # validate size of data that go into C
     if(dim(codes)[1] != nCodes || dim(codes)[2] != ncol(data))
       stop("wrong size of SOM codebook (check column names of data)")
+
+    if(!is.numeric(epochRadii) || length(epochRadii)<rlen)
+      stop("epochRadii must be a numeric vector of length rlen")
 
     codes <- t(codes)
 
     # Compute the SOM
-    res <- .C("es_C_SOM",
-        data = as.single(points),
-        codes = as.single(codes),
-        nhbrdist = as.single(nhbrdist),
-        alphaA = as.single(alphaA),
-        radiusA = as.single(radiusA),
-        alphaB = as.single(alphaB),
-        radiusB = as.single(radiusB),
-        n = as.integer(nrow(data)),
-        dim = as.integer(ncol(data)),
-        kohos = as.integer(nCodes),
-        rlen = as.integer(rlen),
-        distf = as.integer(distf))
+    if(batch) res <- .C("es_C_BatchSOM",
+      nthreads=threads,
+      data = as.single(points),
+      codes = as.single(codes),
+      nhbrdist = as.single(nhbrdist),
+      epochRadii = as.single(epochRadii),
+      n = as.integer(nrow(data)),
+      dim = as.integer(ncol(data)),
+      kohos = as.integer(nCodes),
+      rlen = as.integer(rlen),
+      distf = as.integer(distf))
+    else res <- .C("es_C_SOM",
+      data = as.single(points),
+      codes = as.single(codes),
+      nhbrdist = as.single(nhbrdist),
+      alphaA = as.single(alphaA),
+      radiusA = as.single(radiusA),
+      alphaB = as.single(alphaB),
+      radiusB = as.single(radiusB),
+      n = as.integer(nrow(data)),
+      dim = as.integer(ncol(data)),
+      kohos = as.integer(nCodes),
+      rlen = as.integer(rlen),
+      distf = as.integer(distf))
 
     codes <- matrix(res$codes, byrow=T, nrow=ncol(codes), ncol=nrow(codes))
     colnames(codes) <- colnames(data)
 
     if(noMapping) mapping <- NULL
-    else mapping <- MapDataToCodes(codes,data, threads=threads)
+    else mapping <- MapDataToCodes(codes,data, parallel=parallel, threads=threads)
 
     list(xdim=xdim, ydim=ydim, zdim=zdim, rlen=rlen,
         alphaA=alphaA, radiusA=radiusA,
@@ -135,7 +152,6 @@ SOM <- function (data, xdim=10, ydim=10, zdim=NULL, rlen=10,
         nhbr.method=nhbr.method,
         grid=grid, codes=codes, mapping=mapping, nNodes=nCodes)
 }
-
 
 
 #' Assign nearest node to each datapoint

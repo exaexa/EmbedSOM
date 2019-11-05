@@ -51,10 +51,10 @@ som(size_t n,
     const float* points,
     float* koho,
     const float* nhbrdist,
-    float alphasA[2],
-    float radiiA[2],
-    float alphasB[2],
-    float radiiB[2])
+    const float alphasA[2],
+    const float radiiA[2],
+    const float alphasB[2],
+    const float radiiB[2])
 {
 	size_t niter = rlen * n;
 
@@ -134,6 +134,103 @@ som(size_t n,
 	RANDOUT;
 }
 
+constexpr float min_radius = 1e-10;
+
+template<class distf, bool threaded>
+static void
+bsom(size_t threads,
+     size_t n,
+     size_t kohos,
+     size_t dim,
+     size_t epochs,
+     const float* points,
+     float* koho,
+     const float* nhbrdist,
+     const float* radii)
+{
+	std::vector<std::thread> ts(threads);
+	std::vector<std::vector<float>> taccs, tws;
+	taccs.resize(threads);
+	for (auto& acc : taccs)
+		acc.resize(kohos * dim);
+	tws.resize(threads);
+	for (auto& ws : tws)
+		ws.resize(kohos);
+	std::vector<float> weights(kohos);
+
+	for (size_t epoch = 0; epoch < epochs; ++epoch) {
+		auto reduce_func = [&](size_t thread_id) {
+			std::vector<float>& ws = tws[thread_id];
+			std::vector<float>& acc = taccs[thread_id];
+			size_t dbegin = thread_id * n / threads,
+			       dend = (thread_id + 1) * n / threads;
+			const float* d = points + dbegin * dim;
+			size_t nd = dend - dbegin;
+			for (auto& x : acc)
+				x = 0;
+			for (auto& x : ws)
+				x = 0;
+
+			for (size_t i = 0; i < nd; ++i) {
+				size_t closest = 0;
+				float closestd =
+				  distf::comp(d + i * dim, koho, dim);
+				for (size_t j = 1; j < kohos; ++j) {
+					float tmp = distf::comp(
+					  d + i * dim, koho + j * dim, dim);
+					if (tmp < closestd) {
+						closest = j;
+						closestd = tmp;
+					}
+				}
+
+				ws[closest] += 1;
+				for (size_t k = 0; k < dim; ++k)
+					acc[closest * dim + k] +=
+					  d[i * dim + k];
+			}
+		};
+
+		if (threaded) {
+			for (size_t i = 0; i < threads; ++i)
+				ts[i] = std::thread(reduce_func, i);
+			for (auto& t : ts)
+				t.join();
+			for (size_t i = 1; i < threads; ++i)
+				for (size_t j = 0; j < kohos * dim; ++j)
+					taccs[0][j] += taccs[i][j];
+			for (size_t i = 1; i < threads; ++i)
+				for (size_t j = 0; j < kohos; ++j)
+					tws[0][j] += tws[i][j];
+
+		} else
+			reduce_func(0);
+
+		for (size_t i = 0; i < kohos * dim; ++i)
+			koho[i] = 0;
+		for (auto& w : weights)
+			w = 0;
+
+		const float invSqSigma =
+		  -powf(std::max(min_radius, radii[epoch]), -2);
+
+		for (size_t si = 0; si < kohos; ++si)
+			for (size_t di = 0; di < kohos; ++di) {
+				float w = exp(sqrf(nhbrdist[si * kohos + di]) *
+				              invSqSigma);
+				for (size_t k = 0; k < dim; ++k)
+					koho[di * dim + k] +=
+					  taccs[0][si * dim + k] * w;
+				weights[di] += tws[0][si] * w;
+			}
+
+		for (size_t i = 0; i < kohos; ++i)
+			if (weights[i] > 0)
+				for (size_t k = 0; k < dim; ++k)
+					koho[i * dim + k] /= weights[i];
+	}
+}
+
 template<class distf, bool threaded>
 static void
 mapNNs(size_t threads,
@@ -197,7 +294,7 @@ es_C_SOM(float* points,
          Sint* prlen,
          Sint* dist)
 {
-	int n = *pn, dim = *pdim, kohos = *pkohos, rlen = *prlen;
+	size_t n = *pn, dim = *pdim, kohos = *pkohos, rlen = *prlen;
 
 	auto somf = som<distfs::sqeucl>;
 	if (*dist == 1)
@@ -216,6 +313,40 @@ es_C_SOM(float* points,
 	     radiiA,
 	     alphasB,
 	     radiiB);
+}
+
+extern "C" void
+es_C_BatchSOM(int* pnthreads,
+              float* points,
+              float* koho,
+              float* nhbrdist,
+              float* radii,
+              Sint* pn,
+              Sint* pdim,
+              Sint* pkohos,
+              Sint* prlen,
+              Sint* dist)
+{
+
+	int n = *pn, dim = *pdim, kohos = *pkohos, rlen = *prlen;
+
+	int threads = *pnthreads;
+
+	if (threads < 0)
+		threads = 1;
+	if (threads == 0)
+		threads = std::thread::hardware_concurrency();
+
+	auto somf = threads == 1 ? bsom<distfs::sqeucl, false>
+	                         : bsom<distfs::sqeucl, true>;
+	if (*dist == 1)
+		somf = threads == 1 ? bsom<distfs::manh, false>
+		                    : bsom<distfs::manh, true>;
+	else if (*dist == 3)
+		somf = threads == 1 ? bsom<distfs::chebyshev, false>
+		                    : bsom<distfs::chebyshev, true>;
+
+	somf(threads, n, kohos, dim, rlen, points, koho, nhbrdist, radii);
 }
 
 extern "C" void

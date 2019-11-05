@@ -15,6 +15,18 @@ es_C_SOM(float* data,
          Sint* dist);
 
 extern "C" void
+es_C_BatchSOM(int* pnthreads,
+              float* data,
+              float* codes,
+              float* nhbrdist,
+              float* radii,
+              Sint* pn,
+              Sint* ppx,
+              Sint* pncodes,
+              Sint* prlen,
+              Sint* dist);
+
+extern "C" void
 es_C_mapDataToCodes(int* pnthreads,
                     float* data,
                     float* codes,

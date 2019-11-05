@@ -21,6 +21,12 @@
 #include <algorithm>
 #include <cmath>
 
+static inline float
+sqrf(float n)
+{
+	return n * n;
+}
+
 namespace distfs {
 using std::abs;
 using std::max;

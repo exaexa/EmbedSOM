@@ -47,12 +47,6 @@ static const float zero_avoidance = 1e-10;
 // a tiny epsilon for preventing singularities
 static const float koho_gravity = 1e-5;
 
-static inline float
-sqrf(float n)
-{
-	return n * n;
-}
-
 struct dist_id
 {
 	float dist;
@@ -493,6 +487,7 @@ C_embedSOM(int* pnthreads,
 static const R_CMethodDef cMethods[] = {
 	{ "C_embedSOM", (DL_FUNC)&C_embedSOM, 13 },
 	{ "es_C_SOM", (DL_FUNC)&es_C_SOM, 12 },
+	{ "es_C_BatchSOM", (DL_FUNC)&es_C_BatchSOM, 10 },
 	{ "es_C_mapDataToCodes", (DL_FUNC)&es_C_mapDataToCodes, 9 },
 	{ NULL, NULL, 0 }
 };
