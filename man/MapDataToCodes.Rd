@@ -4,7 +4,8 @@
 \alias{MapDataToCodes}
 \title{Assign nearest node to each datapoint}
 \usage{
-MapDataToCodes(codes, data, distf = 2)
+MapDataToCodes(codes, data, distf = 2, parallel = F, threads = if
+  (parallel) 0 else 1)
 }
 \arguments{
 \item{codes}{matrix with nodes of the SOM}
@@ -13,9 +14,13 @@ MapDataToCodes(codes, data, distf = 2)
 
 \item{distf}{Distance function (1=manhattan, 2=euclidean, 3=chebyshev,
 4=cosine)}
+
+\item{parallel}{Boolean flag whether the computation should be parallelized (this flag is just a nice name for 'threads' and does not do anything directly -- default FALSE sets threads=1, TRUE sets threads=0)}
+
+\item{threads}{Number of threads used for computation, 0 chooses hardware concurrency, 1 (default) turns off parallelization.}
 }
 \value{
-Array with nearest node id for each datapoint
+array with nearest node id for each datapoint
 }
 \description{
 Assign nearest node to each datapoint

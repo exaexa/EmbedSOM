@@ -493,7 +493,7 @@ C_embedSOM(int* pnthreads,
 static const R_CMethodDef cMethods[] = {
 	{ "C_embedSOM", (DL_FUNC)&C_embedSOM, 13 },
 	{ "es_C_SOM", (DL_FUNC)&es_C_SOM, 12 },
-	{ "es_C_mapDataToCodes", (DL_FUNC)&es_C_mapDataToCodes, 8 },
+	{ "es_C_mapDataToCodes", (DL_FUNC)&es_C_mapDataToCodes, 9 },
 	{ NULL, NULL, 0 }
 };
 

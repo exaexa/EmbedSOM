@@ -42,7 +42,8 @@
 #'                   according to importance
 #' @param nhbr.method Way of computing grid distances, passed as method= to dist() function. Default 'maximum' (square neighborhoods); use 'euclidean' for round neighborhoods.
 #' @param noMapping If true, do not produce mapping (default F). Useful for online/streaming use.
-#'
+#' @param threads No effect here, passed to 'MapDataToCodes'.
+#' @param parallel No effect here, passed to 'MapDataToCodes'. Defaults to FALSE. This function implements online SOM learning; use 'BatchSOM' for fully parallelized version.
 #' @return A map, which is a list containing all parameter settings and results
 #'
 #' @seealso FlowSOM::SOM
@@ -56,7 +57,7 @@ SOM <- function (data, xdim=10, ydim=10, zdim=NULL, rlen=10,
     init=FALSE, initf=Initialize_PCA, distf=2,
     codes=NULL, importance = NULL, nhbr.method='maximum',
     negRadius=1.33, negAlpha=0.1,
-    noMapping=F) {
+    noMapping=F, parallel=F, threads=if (parallel) 0 else 1) {
 
     somdim <- 2
     if(!is.null(zdim)) somdim <- 3
@@ -125,7 +126,7 @@ SOM <- function (data, xdim=10, ydim=10, zdim=NULL, rlen=10,
     colnames(codes) <- colnames(data)
 
     if(noMapping) mapping <- NULL
-    else mapping <- MapDataToCodes(codes,data)
+    else mapping <- MapDataToCodes(codes,data, threads=threads)
 
     list(xdim=xdim, ydim=ydim, zdim=zdim, rlen=rlen,
         alphaA=alphaA, radiusA=radiusA,
@@ -138,15 +139,17 @@ SOM <- function (data, xdim=10, ydim=10, zdim=NULL, rlen=10,
 
 
 #' Assign nearest node to each datapoint
-#
+#'
 #' @param codes matrix with nodes of the SOM
 #' @param data datapoints to assign
 #' @param distf Distance function (1=manhattan, 2=euclidean, 3=chebyshev,
 #'              4=cosine)
+#' @param threads Number of threads used for computation, 0 chooses hardware concurrency, 1 (default) turns off parallelization.
+#' @param parallel Boolean flag whether the computation should be parallelized (this flag is just a nice name for 'threads' and does not do anything directly -- default FALSE sets threads=1, TRUE sets threads=0)
+#' @return array with nearest node id for each datapoint
 #'
-#' @return Array with nearest node id for each datapoint
 #' @export
-MapDataToCodes <- function (codes, data, distf=2) {
+MapDataToCodes <- function (codes, data, distf=2, parallel=F, threads=if (parallel) 0 else 1) {
 
     colsToUse <- colnames(codes)
     if(is.null(colsToUse))
@@ -158,6 +161,7 @@ MapDataToCodes <- function (codes, data, distf=2) {
     codes <- t(codes)
 
     nnCodes <- .C("es_C_mapDataToCodes",
+        threads = as.integer(threads),
         points = as.single(data),
         koho = as.single(codes),
         pn = as.integer(ncol(data)),

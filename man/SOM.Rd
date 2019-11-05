@@ -6,11 +6,12 @@
 \usage{
 SOM(data, xdim = 10, ydim = 10, zdim = NULL, rlen = 10,
   alphaA = c(0.05, 0.01), radiusA = stats::quantile(nhbrdist, 0.67) *
-  c(1, 0), alphaB = alphaA * c(-negAlpha, -0.01 * negAlpha),
+  c(1, 0), alphaB = alphaA * c(-negAlpha, -0.1 * negAlpha),
   radiusB = negRadius * radiusA, init = FALSE,
   initf = Initialize_PCA, distf = 2, codes = NULL,
   importance = NULL, nhbr.method = "maximum", negRadius = 1.33,
-  negAlpha = 0.1, noMapping = F)
+  negAlpha = 0.1, noMapping = F, parallel = F, threads = if
+  (parallel) 0 else 1)
 }
 \arguments{
 \item{data}{Matrix containing the training data}
@@ -51,6 +52,10 @@ according to importance}
 \item{negAlpha}{the same for alphaB}
 
 \item{noMapping}{If true, do not produce mapping (default F). Useful for online/streaming use.}
+
+\item{parallel}{No effect here, passed to 'MapDataToCodes'. Defaults to FALSE. This function implements online SOM learning; use 'BatchSOM' for fully parallelized version.}
+
+\item{threads}{No effect here, passed to 'MapDataToCodes'.}
 }
 \value{
 A map, which is a list containing all parameter settings and results

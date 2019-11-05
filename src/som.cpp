@@ -24,6 +24,9 @@
 
 #include "som.h"
 
+#include <thread>
+#include <vector>
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -131,9 +134,10 @@ som(size_t n,
 	RANDOUT;
 }
 
-template<class distf>
+template<class distf, bool threaded>
 static void
-mapNNs(size_t n,
+mapNNs(size_t threads,
+       size_t n,
        size_t k,
        size_t dim,
        const float* points,
@@ -141,6 +145,27 @@ mapNNs(size_t n,
        int* mapping,
        float* dists)
 {
+	if (threaded) {
+		std::vector<std::thread> ts(threads);
+		for (size_t i = 0; i < threads; ++i)
+			ts[i] = std::thread(
+			  [&](size_t thread_id) {
+				  size_t dbegin = thread_id * n / threads,
+				         dend = (thread_id + 1) * n / threads;
+				  const float* d = points + dbegin * dim;
+				  int* m = mapping + dbegin;
+				  float* dd = dists + dbegin;
+				  size_t nd = dend - dbegin;
+
+				  mapNNs<distf, false>(
+				    1, nd, k, dim, d, koho, m, dd);
+			  },
+			  i);
+		for (auto& t : ts)
+			t.join();
+		return;
+	}
+
 	for (size_t point = 0; point < n; ++point) {
 		size_t nearest = 0;
 		float nearestd = distf::comp(points + dim * point, koho, dim);
@@ -194,7 +219,8 @@ es_C_SOM(float* points,
 }
 
 extern "C" void
-es_C_mapDataToCodes(float* points,
+es_C_mapDataToCodes(int* pnthreads,
+                    float* points,
                     float* koho,
                     int* pn,
                     int* pdim,
@@ -205,11 +231,21 @@ es_C_mapDataToCodes(float* points,
 {
 	int n = *pn, dim = *pdim, kohos = *pkohos;
 
-	auto mapf = mapNNs<distfs::sqeucl>;
-	if (*dist == 1)
-		mapf = mapNNs<distfs::manh>;
-	else if (*dist == 3)
-		mapf = mapNNs<distfs::chebyshev>;
+	int threads = *pnthreads;
 
-	mapf(n, kohos, dim, points, koho, mapping, dists);
+	if (threads < 0)
+		threads = 1;
+	if (threads == 0)
+		threads = std::thread::hardware_concurrency();
+
+	auto mapf = threads == 1 ? mapNNs<distfs::sqeucl, false>
+	                         : mapNNs<distfs::sqeucl, true>;
+	if (*dist == 1)
+		mapf = threads == 1 ? mapNNs<distfs::manh, false>
+		                    : mapNNs<distfs::manh, true>;
+	else if (*dist == 3)
+		mapf = threads == 1 ? mapNNs<distfs::chebyshev, false>
+		                    : mapNNs<distfs::chebyshev, true>;
+
+	mapf(threads, n, kohos, dim, points, koho, mapping, dists);
 }
