@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2018-2019 Mirek Kratochvil <exa.exa@gmail.com>
 #
-# This particular file is based on FlowSOM,
+# A part of the functionality is based on FlowSOM,
 # Copyright (C) 2016-2019 Sofie Van Gassen et al.
 #
 # EmbedSOM is free software: you can redistribute it and/or modify
@@ -62,6 +62,9 @@ SOM <- function (data, xdim=10, ydim=10, zdim=NULL, batch=F, rlen=10,
     negRadius=1.33, negAlpha=0.1,
     noMapping=F, parallel=F, threads=if (parallel) 0 else 1) {
 
+    if(threads!=1 && batch==F)
+      warning("The used SOM training version is not parallelizable. Perhaps you want to use batch=T?")
+
     somdim <- 2
     if(!is.null(zdim)) somdim <- 3
 
@@ -115,7 +118,7 @@ SOM <- function (data, xdim=10, ydim=10, zdim=NULL, batch=F, rlen=10,
 
     # Compute the SOM
     if(batch) res <- .C("es_C_BatchSOM",
-      nthreads=threads,
+      nthreads=as.integer(threads),
       data = as.single(points),
       codes = as.single(codes),
       nhbrdist = as.single(nhbrdist),
@@ -153,6 +156,99 @@ SOM <- function (data, xdim=10, ydim=10, zdim=NULL, batch=F, rlen=10,
         grid=grid, codes=codes, mapping=mapping, nNodes=nCodes)
 }
 
+#' Train a Growing Quadtree Self-Organizing Map
+#'
+#' @export
+GQTSOM <- function(data, init.dim=c(3,3), target_codes=100, rlen=10,
+  radius=c(sqrt(sum(init.dim^2)),0.1), epochRadii=seq(radius[1], radius[2], length.out=rlen),
+  init=FALSE, initf=Initialize_PCA, coords=NULL, codes=NULL, importance=NULL,
+  distf=2, nhbr.distf=2,
+  noMapping=F, parallel=F, threads=if (parallel) 0 else 1) {
+
+  xdim <- NULL
+  ydim <- NULL
+
+  if(is.null(coords)) {
+    if(length(init.dim)!=2)
+      stop("Either coords must be initialized, or init.dim must be a vector of 2 integers")
+    coords <- as.matrix(cbind(level=as.integer(0),
+                              expand.grid(x=1:init.dim[1],
+                                          y=1:init.dim[2])))
+    xdim <- init.dim[1]
+    ydim <- init.dim[2]
+  } else if(dim(coords)[1] < 2 || dim(coords)[2]!=3) {
+    stop("invalid specified coords! Specify at least 2 coords in a 3-column matrix.")
+  } else {
+    coords <- as.integer(coords)
+    xdim <- dim(coords)[1]
+    ydim <- 1
+  }
+
+  if(any(coords[,1] < 0))
+    stop("Coordinate levels must not be negative!")
+
+  if(is.null(codes)) {
+    ncodes <- nrow(coords)
+    codes <- data[sample(dim(data)[1], ncodes),,drop=F]
+  }
+
+  if(dim(codes)[2]!=dim(data)[2])
+    stop("Codes and data must have the same dimension!")
+
+  if(dim(codes)[1]!=dim(coords)[1])
+    stop("Different number of codes and coords specified!")
+
+  points <- t(data) * (if(is.null(importance)) 1
+                       else if(length(importance)!=dim(codes)[2])
+                         stop("Importance must be either null or a vector of the column-size of data")
+                         else importance)
+
+  if(target_codes<dim(codes)[1])
+    stop("target_codes too low!")
+
+  out.kohos <- as.integer(target_codes)
+  out.codes <- single(target_codes*dim(codes)[2])
+  out.coords <- integer(target_codes*3)
+  out.emcoords <- single(target_codes*2)
+  codes <- t(codes)
+  print(coords)
+  coords <- t(coords)
+
+  res <- .C("es_C_GQTSOM",
+    nthreads=as.integer(threads),
+    data=as.single(points),
+    coords=as.integer(coords),
+    codes=as.single(codes),
+    radii=as.single(epochRadii),
+    out.kohos=as.integer(out.kohos),
+    out.codes=as.single(out.codes),
+    out.coords=as.integer(out.coords),
+    out.emcoords=as.single(out.emcoords),
+    n=as.integer(ncol(points)),
+    dim=as.integer(nrow(codes)),
+    kohos=as.integer(ncol(codes)),
+    rlen=as.integer(rlen),
+    distf=as.integer(distf),
+    nhbr.distf=as.integer(nhbr.distf))
+
+  codes <- matrix(res$out.codes[1:(res$out.kohos*nrow(codes))],
+                  byrow=T, nrow=res$out.kohos, ncol=nrow(codes))
+  colnames(codes) <- colnames(data)
+
+  if(noMapping) mapping <- NULL
+  else mapping <- MapDataToCodes(codes, data, parallel=parallel, threads=threads)
+
+  list(xdim=xdim, ydim=ydim, rlen=rlen,
+    init=init, distf=distf, nhbr.distf=nhbr.distf,
+    epochRadii=epochRadii,
+    grid=matrix(res$out.emcoords[1:(res$out.kohos*2)],
+                byrow=T, nrow=res$out.kohos, ncol=2),
+    coords=matrix(res$out.coords[1:(res$out.kohos*3)],
+                  byrow=T, nrow=res$out.kohos, ncol=3),
+    codes=codes,
+    mapping=mapping,
+    nNodes=res$out.kohos)
+}
 
 #' Assign nearest node to each datapoint
 #'

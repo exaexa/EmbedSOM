@@ -250,6 +250,7 @@ embedsom(const size_t threads,
 				float pj = dists[j].dist;
 
 #ifndef USE_INTRINS
+				//TODO externalize this to sqdists
 				float scalar = 0, sqdist = 0;
 				for (k = 0; k < dim; ++k) {
 					float tmp = koho[k + dim * jdx] -

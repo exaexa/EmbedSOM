@@ -3,10 +3,9 @@
  *
  * Copyright (C) 2018-2019 Mirek Kratochvil <exa.exa@gmail.com>
  *
- * Based on code from FlowSOM,
+ * Parts of the code are based on FlowSOM,
  * Copyright (C) 2016-2019 Sofie Van Gassen et al.
- *
- * Originally based on code of Ron Wehrens
+ * (These were originally based on code of Ron Wehrens.)
  *
  * EmbedSOM is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free
@@ -24,6 +23,7 @@
 
 #include "som.h"
 
+#include <complex>
 #include <thread>
 #include <vector>
 
@@ -231,6 +231,325 @@ bsom(size_t threads,
 	}
 }
 
+struct kohoid_t
+{
+	unsigned level;
+	int x;
+	int y;
+
+	using comp = std::complex<float>;
+
+	inline comp grid_pos() const
+	{
+		return comp(x, y) / float(1 << level) - comp(1, 1) +
+		       comp(.5, .5) / float(1 << level);
+	}
+	inline void sink()
+	{
+		level++;
+		x *= 2;
+		y *= 2;
+	}
+	inline void offset(unsigned xo, unsigned yo)
+	{
+		x += xo;
+		y += yo;
+	}
+};
+
+template<class distf, class nhbr_distf, bool threaded>
+static void
+gqtsom(size_t threads,
+       size_t n,
+       size_t in_kohos,
+       size_t dim,
+       size_t epochs,
+       const float* points,
+       const int* coords,
+       const float* codes,
+       const float* radii,
+       int* out_kohos,
+       float* out_koho,
+       int* out_coords,
+       float* out_emcoords)
+{
+	size_t target_kohos = *out_kohos;
+
+	std::vector<float> koho(in_kohos * dim, 0);
+	std::copy(codes, codes + in_kohos * dim, koho.begin());
+	std::vector<kohoid_t> kohoid(in_kohos);
+	for (size_t i = 0; i < in_kohos; ++i) {
+		kohoid[i].level = coords[i * 3 + 0];
+		kohoid[i].x = coords[i * 3 + 1];
+		kohoid[i].y = coords[i * 3 + 2];
+	}
+
+	std::vector<std::thread> ts;
+	if (threaded)
+		ts.resize(threads);
+
+	std::vector<std::vector<float>> taccs, tws, tqes;
+	taccs.resize(threads);
+	tws.resize(threads);
+	tqes.resize(threads);
+
+	for (size_t epoch = 0; epoch < epochs; ++epoch) {
+
+		float epochRadius = std::max(min_radius, radii[epoch]);
+
+		auto get_gauss_factor_dstlevel =
+		  [&](kohoid_t s, kohoid_t d, float radius) -> float {
+			auto spos = s.grid_pos();
+			auto dpos = d.grid_pos();
+			/* the type conversion here seems a bit harsh
+			 * but the standard says that it should work */
+			return exp(-sqrf(nhbr_distf::back(nhbr_distf::comp(
+			                   (float*)&spos, (float*)&dpos, 2)) *
+			                 (1 << d.level) / radius));
+		};
+
+		const size_t kohos = kohoid.size();
+
+		// find nearest neighbors for SOM update
+		auto collect_kohos = [&](size_t thread_id) {
+			std::vector<float>& ws = tws[thread_id];
+			std::vector<float>& acc = taccs[thread_id];
+			size_t dbegin = thread_id * n / threads,
+			       dend = (thread_id + 1) * n / threads;
+			const float* d = points + dbegin * dim;
+			size_t nd = dend - dbegin;
+			acc.resize(kohos * dim);
+			ws.resize(kohos);
+
+			for (auto& x : acc)
+				x = 0;
+			for (auto& x : ws)
+				x = 0;
+
+			for (size_t i = 0; i < nd; ++i) {
+				size_t closest = 0;
+				float closestd =
+				  distf::comp(d + i * dim, koho.data(), dim);
+				for (size_t j = 1; j < kohos; ++j) {
+					float tmp =
+					  distf::comp(d + i * dim,
+					              koho.data() + j * dim,
+					              dim);
+					if (tmp < closestd) {
+						closest = j;
+						closestd = tmp;
+					}
+				}
+
+				ws[closest] += 1;
+				for (size_t k = 0; k < dim; ++k)
+					acc[closest * dim + k] +=
+					  d[i * dim + k];
+			}
+		};
+
+		if (threaded) {
+			for (size_t i = 0; i < threads; ++i)
+				ts[i] = std::thread(collect_kohos, i);
+			for (size_t i = 0; i < threads; ++i)
+				ts[i].join();
+
+			// collect
+			for (size_t i = 1; i < threads; ++i)
+				for (size_t j = 0; j < kohos * dim; ++j)
+					taccs[0][j] += taccs[i][j];
+			for (size_t i = 1; i < threads; ++i)
+				for (size_t j = 0; j < kohos; ++j)
+					tws[0][j] += tws[i][j];
+		} else
+			collect_kohos(0);
+
+		for (auto& x : koho)
+			x = 0;
+
+		std::vector<float> weights(kohos, 0);
+
+		// gaussify
+		for (size_t si = 0; si < kohos; ++si)
+			for (size_t di = 0; di < kohos; ++di) {
+				auto factor = get_gauss_factor_dstlevel(
+				  kohoid[si], kohoid[di], epochRadius);
+				for (size_t k = 0; k < dim; ++k)
+					koho[di * dim + k] +=
+					  taccs[0][si * dim + k] * factor;
+				weights[di] += tws[0][si] * factor;
+			}
+
+		// normalize
+		for (size_t i = 0; i < kohos; ++i)
+			if (weights[i] > 0)
+				for (size_t k = 0; k < dim; ++k)
+					koho[i * dim + k] /= weights[i];
+
+		// collect quantization errors
+		auto collect_qe = [&](size_t thread_id) {
+			std::vector<float>& ws = tws[thread_id];
+			std::vector<float>& qe = tqes[thread_id];
+			size_t dbegin = thread_id * n / threads,
+			       dend = (thread_id + 1) * n / threads;
+			const float* d = points + dbegin * dim;
+			size_t nd = dend - dbegin;
+			ws.resize(kohos);
+			qe.resize(kohos);
+
+			for (auto& x : ws)
+				x = 0;
+			for (auto& x : qe)
+				x = 0;
+
+			for (size_t i = 0; i < nd; ++i) {
+				size_t closest = 0;
+				size_t closest2 = 1;
+				float closestd =
+				  distf::comp(d + i * dim, koho.data(), dim);
+				float closest2d = distf::comp(
+				  d + i * dim, koho.data() + dim, dim);
+				if (closestd > closest2d) {
+					std::swap(closest, closest2);
+					std::swap(closestd, closest2d);
+				}
+				for (size_t j = 2; j < kohos; ++j) {
+					float tmp =
+					  distf::comp(d + i * dim,
+					              koho.data() + j * dim,
+					              dim);
+					if (tmp < closest2d) {
+						closest2 = j;
+						closest2d = tmp;
+					}
+					if (closestd > closest2d) {
+						std::swap(closest, closest2);
+						std::swap(closestd, closest2d);
+					}
+				}
+
+				// TODO convert this to SIMDable distf
+				// computation
+				float r = 0;
+				for (size_t k = 0; k < dim; ++k)
+					r += (koho[closest * dim + k] -
+					      d[i * dim + k]) *
+					     (koho[closest2 * dim + k] -
+					      d[i * dim + k]);
+				qe[closest] += r;
+				qe[closest2] += r;
+			}
+		};
+
+		if (threaded) {
+			for (size_t i = 0; i < threads; ++i)
+				ts[i] = std::thread(collect_qe, i);
+			for (size_t i = 0; i < threads; ++i)
+				ts[i].join();
+
+			// collect
+			for (size_t i = 1; i < threads; ++i)
+				for (size_t j = 0; j < kohos; ++j)
+					tqes[0][j] += tqes[i][j];
+		} else
+			collect_qe(0);
+
+		// do not spawn new kohos in the last epoch
+		if (epoch + 1 >= epochs)
+			break;
+
+		// find kohos with largest quantization error
+		std::vector<std::pair<float, size_t>> sqes(kohoid.size());
+		for (size_t i = 0; i < kohoid.size(); ++i)
+			sqes[i] =
+			  std::make_pair(tqes[0][i] / (1 + kohoid[i].level), i);
+
+		size_t target_nodes =
+		  ((epoch)*target_kohos + (epochs - epoch - 2) * in_kohos) /
+		  (epochs - 2);
+		if (target_nodes <= kohoid.size())
+			continue;
+		if (target_nodes > kohoid.size() * 4)
+			target_nodes = kohoid.size() * 4;
+		size_t to_expand = (target_nodes - kohoid.size()) / 3;
+		/* NB: this needs to hold here (since we only have
+		 * target_nodes-sized output space):
+		 * assert(3*to_expand+kohoid.size() <= target_nodes) */
+		std::partial_sort(sqes.begin(),
+		                  sqes.begin() + to_expand,
+		                  sqes.end(),
+		                  std::greater<std::pair<float, size_t>>());
+
+		// expand
+		koho.reserve(koho.size() + to_expand * 3 * dim);
+		kohoid.reserve(kohoid.size() + to_expand * 3);
+		for (size_t expanding = 0; expanding < to_expand; ++expanding) {
+			const size_t i = sqes[expanding].second;
+
+			kohoid_t a[4];
+			std::vector<float> tmpkoho(4 * dim, 0);
+
+			a[0] = kohoid[i];
+			a[0].sink();
+			a[1] = a[2] = a[3] = a[0];
+			a[1].offset(1, 0);
+			a[2].offset(0, 1);
+			a[3].offset(1, 1);
+
+			auto gauss_guess = [&](kohoid_t k, float* out) {
+				float w = 0;
+				for (size_t d = 0; d < dim; ++d)
+					out[d] = 0;
+				for (size_t ki = 0; ki < kohoid.size(); ++ki) {
+					auto factor = get_gauss_factor_dstlevel(
+					  kohoid[ki], k, 1);
+					for (size_t d = 0; d < dim; ++d)
+						out[d] +=
+						  koho[d + dim * ki] * factor;
+					w += factor;
+				}
+				for (size_t d = 0; d < dim; ++d)
+					if (w > 0)
+						out[d] /= w;
+					else
+						out[d] = koho[d + dim * i];
+			};
+
+			for (size_t j = 0; j < 4; ++j)
+				gauss_guess(a[j], tmpkoho.data() + j * dim);
+
+			kohoid[i] = a[0];
+			kohoid.push_back(a[1]);
+			kohoid.push_back(a[2]);
+			kohoid.push_back(a[3]);
+
+			std::copy(tmpkoho.begin(),
+			          tmpkoho.begin() + dim,
+			          koho.begin() + i * dim);
+			for (size_t j = 1; j < 4; ++j)
+				koho.insert(koho.end(),
+				            tmpkoho.begin() + j * dim,
+				            tmpkoho.begin() + (j + 1) * dim);
+		}
+	}
+
+	size_t kohos = kohoid.size();
+	if (kohos > target_kohos)
+		kohos = target_kohos; // this should not happen but let's be
+		                      // safe right?
+	*out_kohos = kohos;
+	for (size_t i = 0; i < kohos; ++i) {
+		for (size_t k = 0; k < dim; ++k)
+			out_koho[i * dim + k] = koho[i * dim + k];
+		out_coords[i * 3 + 0] = kohoid[i].level;
+		out_coords[i * 3 + 1] = kohoid[i].x;
+		out_coords[i * 3 + 2] = kohoid[i].y;
+		auto p = kohoid[i].grid_pos();
+		out_emcoords[i * 2 + 0] = p.real();
+		out_emcoords[i * 2 + 1] = p.imag();
+	}
+}
+
 template<class distf, bool threaded>
 static void
 mapNNs(size_t threads,
@@ -279,6 +598,10 @@ mapNNs(size_t threads,
 		dists[point] = distf::back(nearestd);
 	}
 }
+
+/*
+ * R interfaces
+ */
 
 extern "C" void
 es_C_SOM(float* points,
@@ -347,6 +670,69 @@ es_C_BatchSOM(int* pnthreads,
 		                    : bsom<distfs::chebyshev, true>;
 
 	somf(threads, n, kohos, dim, rlen, points, koho, nhbrdist, radii);
+}
+
+extern "C" void
+es_C_GQTSOM(int* pnthreads,
+            float* points,
+            int* coords,
+            float* codes,
+            float* radii,
+            int* out_ncodes,
+            float* out_codes,
+            int* out_coords,
+            float* out_emcoords,
+            int* pn,
+            int* pdim,
+            int* pkohos,
+            int* prlen,
+            int* distf,
+            int* nhbr_distf)
+{
+	size_t n = *pn, dim = *pdim, kohos = *pkohos, rlen = *prlen,
+	       threads = *pnthreads;
+
+	if (threads < 0)
+		threads = 1;
+	if (threads == 0)
+		threads = std::thread::hardware_concurrency();
+
+	if (kohos < 2)
+		return; // needed for computability of QE
+
+	auto somf = threads == 1 ? gqtsom<distfs::sqeucl, distfs::sqeucl, false>
+	                         : gqtsom<distfs::sqeucl, distfs::sqeucl, true>;
+/* it would be great if C++ supported some nice way of data promotion, like with
+ * autogenerated switch or so. */
+#define choose_somf(DI, DF, NDI, NDF)                                          \
+	if (*distf == DI && *nhbr_distf == NDI)                                \
+	somf = threads == 1 ? gqtsom<DF, NDF, false> : gqtsom<DF, NDF, true>
+
+	choose_somf(1, distfs::manh, 1, distfs::manh);
+	choose_somf(1, distfs::manh, 2, distfs::sqeucl);
+	choose_somf(1, distfs::manh, 3, distfs::chebyshev);
+	choose_somf(2, distfs::sqeucl, 1, distfs::manh);
+	choose_somf(2, distfs::sqeucl, 2, distfs::sqeucl);
+	choose_somf(2, distfs::sqeucl, 3, distfs::chebyshev);
+	choose_somf(3, distfs::chebyshev, 1, distfs::manh);
+	choose_somf(3, distfs::chebyshev, 2, distfs::sqeucl);
+	choose_somf(3, distfs::chebyshev, 3, distfs::chebyshev);
+
+#undef choose_somf
+
+	somf(threads,
+	     n,
+	     kohos,
+	     dim,
+	     rlen,
+	     points,
+	     coords,
+	     codes,
+	     radii,
+	     out_ncodes,
+	     out_codes,
+	     out_coords,
+	     out_emcoords);
 }
 
 extern "C" void

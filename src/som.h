@@ -9,7 +9,7 @@ es_C_SOM(float* data,
          float* alphasB,
          float* radiiB,
          Sint* pn,
-         Sint* ppx,
+         Sint* pdim,
          Sint* pncodes,
          Sint* prlen,
          Sint* dist);
@@ -21,10 +21,27 @@ es_C_BatchSOM(int* pnthreads,
               float* nhbrdist,
               float* radii,
               Sint* pn,
-              Sint* ppx,
+              Sint* pdim,
               Sint* pncodes,
               Sint* prlen,
               Sint* dist);
+
+extern "C" void
+es_C_GQTSOM(int* pnthreads,
+            float* data,
+            int* coords,
+            float* codes,
+            float* radii,
+            int* out_ncodes,
+            float* out_codes,
+            int* out_coords,
+            float* out_emcoords,
+            int* pn,
+            int* pdim,
+            int* pncodes,
+            int* prlen,
+            int* distf,
+            int* nhbr_distf);
 
 extern "C" void
 es_C_mapDataToCodes(int* pnthreads,

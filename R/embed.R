@@ -139,12 +139,12 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
   }
 
   if(somdim==2) {
-    if(dim(emcoords)[1] != x*y || dim(emcoords)[2] != 2) {
-      stop("Embedding coordinates need to be of dimension (xdim*ydim, 2).")
+    if(dim(emcoords)[1] != ncodes || dim(emcoords)[2] != 2) {
+      stop("Embedding coordinates need to be of dimension (n_codes, 2).")
     }
   } else {
-    if(dim(emcoords)[1] != x*y*z || dim(emcoords)[2] != 3) {
-      stop("Embedding coordinates need to be of dimension (xdim*ydim*zdim, 3).")
+    if(dim(emcoords)[1] != ncodes || dim(emcoords)[2] != 3) {
+      stop("Embedding coordinates need to be of dimension (n_codes, 3).")
     }
   }
 
