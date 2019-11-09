@@ -326,6 +326,14 @@ gqtsom(size_t threads,
 			for (auto& x : ws)
 				x = 0;
 
+			/* TODO: smaller nodes should match less cells.
+			 * For quadtrees, the decrease factor in radius is
+			 * roughly around
+			 *
+			 *   pow(4,-level/dim)
+			 *
+			 * It should also probably depend on distf. */
+
 			for (size_t i = 0; i < nd; ++i) {
 				size_t closest = 0;
 				float closestd =
@@ -472,9 +480,11 @@ gqtsom(size_t threads,
 		if (target_nodes > kohoid.size() * 4)
 			target_nodes = kohoid.size() * 4;
 		size_t to_expand = (target_nodes - kohoid.size()) / 3;
-		/* NB: this needs to hold here (since we only have
-		 * target_nodes-sized output space):
-		 * assert(3*to_expand+kohoid.size() <= target_nodes) */
+		/* NB: because we only have target_nodes-sized output space,
+		 * this needs to hold here:
+		 *
+		 *   3*to_expand+kohoid.size() <= target_nodes
+		 */
 		std::partial_sort(sqes.begin(),
 		                  sqes.begin() + to_expand,
 		                  sqes.end(),
