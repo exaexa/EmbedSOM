@@ -146,4 +146,4 @@ First, add a correct line to the R `Makevars` config file:
 CXXFLAGS += -O3 -march=native
 ```
 
-After reinstalling EmbedSOM, SIMD code will be used by default.
+After reinstalling EmbedSOM, SIMD code will be used by default. Note that only the SOM functions from EmbedSOM are affected, i.e. you will need to use `EmbedSOM::SOM` to get this speedup. `FlowSOM::BuildSOM` will not get accelerated.
