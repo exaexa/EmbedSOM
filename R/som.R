@@ -160,7 +160,7 @@ SOM <- function (data, xdim=10, ydim=10, zdim=NULL, batch=F, rlen=10,
 #'
 #' @export
 GQTSOM <- function(data, init.dim=c(3,3), target_codes=100, rlen=10,
-  radius=c(sqrt(sum(init.dim^2)),0.1), epochRadii=seq(radius[1], radius[2], length.out=rlen),
+  radius=c(sqrt(sum(init.dim^2)),0.5), epochRadii=seq(radius[1], radius[2], length.out=rlen),
   init=FALSE, initf=Initialize_PCA, coords=NULL, codes=NULL, importance=NULL,
   distf=2, nhbr.distf=2,
   noMapping=F, parallel=F, threads=if (parallel) 0 else 1) {
@@ -211,7 +211,6 @@ GQTSOM <- function(data, init.dim=c(3,3), target_codes=100, rlen=10,
   out.coords <- integer(target_codes*3)
   out.emcoords <- single(target_codes*2)
   codes <- t(codes)
-  print(coords)
   coords <- t(coords)
 
   res <- .C("es_C_GQTSOM",

@@ -257,6 +257,12 @@ struct kohoid_t
 	}
 };
 
+inline static float
+inv_level_radius(float dim, float level)
+{
+	return powf(4, level / dim);
+}
+
 template<class distf, class nhbr_distf, bool threaded>
 static void
 gqtsom(size_t threads,
@@ -288,10 +294,9 @@ gqtsom(size_t threads,
 	if (threaded)
 		ts.resize(threads);
 
-	std::vector<std::vector<float>> taccs, tws, tqes;
+	std::vector<std::vector<float>> taccs, tws;
 	taccs.resize(threads);
 	tws.resize(threads);
-	tqes.resize(threads);
 
 	for (size_t epoch = 0; epoch < epochs; ++epoch) {
 
@@ -337,12 +342,15 @@ gqtsom(size_t threads,
 			for (size_t i = 0; i < nd; ++i) {
 				size_t closest = 0;
 				float closestd =
-				  distf::comp(d + i * dim, koho.data(), dim);
+				  distf::comp(d + i * dim, koho.data(), dim) *
+				  inv_level_radius(dim, kohoid[0].level);
 				for (size_t j = 1; j < kohos; ++j) {
 					float tmp =
 					  distf::comp(d + i * dim,
 					              koho.data() + j * dim,
-					              dim);
+					              dim) *
+					  inv_level_radius(dim,
+					                   kohoid[j].level);
 					if (tmp < closestd) {
 						closest = j;
 						closestd = tmp;
@@ -372,10 +380,9 @@ gqtsom(size_t threads,
 		} else
 			collect_kohos(0);
 
-		for (auto& x : koho)
-			x = 0;
-
-		std::vector<float> weights(kohos, 0);
+		std::vector<float> diffs(kohos,0),weights(kohos, 0), oldkoho;
+		oldkoho.swap(koho);
+		koho.resize(kohos*dim, 0);
 
 		// gaussify
 		for (size_t si = 0; si < kohos; ++si)
@@ -390,96 +397,74 @@ gqtsom(size_t threads,
 
 		// normalize
 		for (size_t i = 0; i < kohos; ++i)
-			if (weights[i] > 0)
+			if (weights[i] > 0) {
 				for (size_t k = 0; k < dim; ++k)
 					koho[i * dim + k] /= weights[i];
-
-		// collect quantization errors
-		auto collect_qe = [&](size_t thread_id) {
-			std::vector<float>& ws = tws[thread_id];
-			std::vector<float>& qe = tqes[thread_id];
-			size_t dbegin = thread_id * n / threads,
-			       dend = (thread_id + 1) * n / threads;
-			const float* d = points + dbegin * dim;
-			size_t nd = dend - dbegin;
-			ws.resize(kohos);
-			qe.resize(kohos);
-
-			for (auto& x : ws)
-				x = 0;
-			for (auto& x : qe)
-				x = 0;
-
-			for (size_t i = 0; i < nd; ++i) {
-				size_t closest = 0;
-				size_t closest2 = 1;
-				float closestd =
-				  distf::comp(d + i * dim, koho.data(), dim);
-				float closest2d = distf::comp(
-				  d + i * dim, koho.data() + dim, dim);
-				if (closestd > closest2d) {
-					std::swap(closest, closest2);
-					std::swap(closestd, closest2d);
-				}
-				for (size_t j = 2; j < kohos; ++j) {
-					float tmp =
-					  distf::comp(d + i * dim,
-					              koho.data() + j * dim,
-					              dim);
-					if (tmp < closest2d) {
-						closest2 = j;
-						closest2d = tmp;
-					}
-					if (closestd > closest2d) {
-						std::swap(closest, closest2);
-						std::swap(closestd, closest2d);
-					}
-				}
-
-				// TODO convert this to SIMDable distf
-				// computation
-				float r = 0;
-				for (size_t k = 0; k < dim; ++k)
-					r += (koho[closest * dim + k] -
-					      d[i * dim + k]) *
-					     (koho[closest2 * dim + k] -
-					      d[i * dim + k]);
-				qe[closest] += r;
-				qe[closest2] += r;
+			diffs[i]=distf::comp(koho.data()+i*dim, oldkoho.data()+i*dim, dim)*weights[i];
 			}
-		};
-
-		if (threaded) {
-			for (size_t i = 0; i < threads; ++i)
-				ts[i] = std::thread(collect_qe, i);
-			for (size_t i = 0; i < threads; ++i)
-				ts[i].join();
-
-			// collect
-			for (size_t i = 1; i < threads; ++i)
-				for (size_t j = 0; j < kohos; ++j)
-					tqes[0][j] += tqes[i][j];
-		} else
-			collect_qe(0);
 
 		// do not spawn new kohos in the last epoch
 		if (epoch + 1 >= epochs)
 			break;
 
+		// collect quantization errors after gaussing it
+#if 0
+		std::vector<float> ksharp((1 + kohos) * dim, 0);
+
+		for (size_t si = 0; si < kohos; ++si)
+			for (size_t di = 0; di < kohos; ++di) {
+				auto factor = get_gauss_factor_dstlevel(
+				  kohoid[si], kohoid[di], epochRadius);
+				if (si == di)
+					factor *= -1;
+				for (size_t k = 0; k < dim; ++k)
+					for (size_t k = 0; k < dim; ++k)
+						ksharp[di * dim + k] +=
+						  koho[di * dim + k] * factor;
+				weights[di] += fabs(factor);
+			}
+		for (size_t i = 0; i < kohos; ++i)
+			if (weights[i] > 0)
+				weights[i] = distf::back(distf::comp(
+				               ksharp.data() + kohos * dim,
+				               ksharp.data() + i * dim,
+				               dim)) /
+				             weights[i];
+#endif
+#if 0
+		std::vector<float> qes(kohos, 0);
+
+		for (size_t si = 0; si < kohos; ++si)
+			for (size_t di = 0; di < kohos; ++di) {
+				auto factor = get_gauss_factor_dstlevel(
+				  kohoid[si], kohoid[di], epochRadius);
+				qes[di] += factor * sqrf(distf::back(distf::comp(
+				                      koho.data() + si * dim,
+				                      koho.data() + di * dim,
+				                      dim)));
+				weights[di] += factor;
+			}
+		for (size_t i = 0; i < kohos; ++i)
+			if (weights[i] > 0)
+				qes[i] /= weights[i];
+
+
+#endif
+
 		// find kohos with largest quantization error
 		std::vector<std::pair<float, size_t>> sqes(kohoid.size());
-		for (size_t i = 0; i < kohoid.size(); ++i)
+		for (size_t i = 0; i < kohos; ++i)
 			sqes[i] =
-			  std::make_pair(tqes[0][i] / (1 + kohoid[i].level), i);
+			  std::make_pair(diffs[i] / (1+kohoid[i].level), i);
 
 		size_t target_nodes =
 		  ((epoch)*target_kohos + (epochs - epoch - 2) * in_kohos) /
 		  (epochs - 2);
-		if (target_nodes <= kohoid.size())
+		if (target_nodes <= kohos)
 			continue;
-		if (target_nodes > kohoid.size() * 4)
-			target_nodes = kohoid.size() * 4;
-		size_t to_expand = (target_nodes - kohoid.size()) / 3;
+		if (target_nodes > kohos * 4)
+			target_nodes = kohos * 4;
+		size_t to_expand = (target_nodes - kohos) / 3;
 		/* NB: because we only have target_nodes-sized output space,
 		 * this needs to hold here:
 		 *
@@ -491,8 +476,8 @@ gqtsom(size_t threads,
 		                  std::greater<std::pair<float, size_t>>());
 
 		// expand
-		koho.reserve(koho.size() + to_expand * 3 * dim);
-		kohoid.reserve(kohoid.size() + to_expand * 3);
+		koho.reserve(kohos + to_expand * 3 * dim);
+		kohoid.reserve(kohos + to_expand * 3);
 		for (size_t expanding = 0; expanding < to_expand; ++expanding) {
 			const size_t i = sqes[expanding].second;
 
