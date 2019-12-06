@@ -56,8 +56,9 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
     } else data <- fsom$data
   }
 
-  somdim <- 2
-  if(!is.null(map$zdim)) somdim <- 3
+  somdim <- dim(map$grid)[2]
+  if(!(somdim %in% c(2,3)))
+    stop("Unsupported embedding dimension (check size of the grid).")
 
   x <- map$xdim
   y <- map$ydim
