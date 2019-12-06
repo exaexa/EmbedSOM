@@ -158,10 +158,24 @@ SOM <- function (data, xdim=10, ydim=10, zdim=NULL, batch=F, rlen=10,
 
 #' Train a Growing Quadtree Self-Organizing Map
 #'
+#' @param data Input data matrix
+#' @param init.dim Initial size of the SOM, default c(3,3)
+#' @param target_codes Make the SOM grow linearly to at most this amount of nodes (default 100)
+#' @param rlen Number of training iterations
+#' @param radius Start and end training radius, as in 'SOM'
+#' @param epochRadii Precise radii for each epoch (must be of length 'rlen')
+#' @param coords Tree coordinates of the initial SOM nodes.
+#' @param codes Initial codebook
+#' @param importance Weights of input data dimensions
+#' @param distf Distance measure to use in input data space (1=manhattan, 2=euclidean, 3=chebyshev)
+#' @param nhbr.distf Distance measure to use in output space (as in 'distf')
+#' @param noMapping If TRUE, do not compute the assignment of input data to SOM nodes
+#' @param threads Number of threads to use for training. Defaults to 0 (chooses maximum available hardware threads) if parallel=TRUE or 1 (single thread) if parallel=FALSE.
+#' @param parallel Parallelize the training by setting appropriate 'threads'. Defaults to FALSE.
 #' @export
 GQTSOM <- function(data, init.dim=c(3,3), target_codes=100, rlen=10,
   radius=c(sqrt(sum(init.dim^2)),0.5), epochRadii=seq(radius[1], radius[2], length.out=rlen),
-  init=FALSE, initf=Initialize_PCA, coords=NULL, codes=NULL, importance=NULL,
+  coords=NULL, codes=NULL, importance=NULL,
   distf=2, nhbr.distf=2,
   noMapping=F, parallel=F, threads=if (parallel) 0 else 1) {
 

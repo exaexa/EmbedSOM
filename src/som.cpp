@@ -331,14 +331,6 @@ gqtsom(size_t threads,
 			for (auto& x : ws)
 				x = 0;
 
-			/* TODO: smaller nodes should match less cells.
-			 * For quadtrees, the decrease factor in radius is
-			 * roughly around
-			 *
-			 *   pow(4,-level/dim)
-			 *
-			 * It should also probably depend on distf. */
-
 			for (size_t i = 0; i < nd; ++i) {
 				size_t closest = 0;
 				float closestd =
@@ -407,51 +399,7 @@ gqtsom(size_t threads,
 		if (epoch + 1 >= epochs)
 			break;
 
-		// collect quantization errors after gaussing it
-#if 0
-		std::vector<float> ksharp((1 + kohos) * dim, 0);
-
-		for (size_t si = 0; si < kohos; ++si)
-			for (size_t di = 0; di < kohos; ++di) {
-				auto factor = get_gauss_factor_dstlevel(
-				  kohoid[si], kohoid[di], epochRadius);
-				if (si == di)
-					factor *= -1;
-				for (size_t k = 0; k < dim; ++k)
-					for (size_t k = 0; k < dim; ++k)
-						ksharp[di * dim + k] +=
-						  koho[di * dim + k] * factor;
-				weights[di] += fabs(factor);
-			}
-		for (size_t i = 0; i < kohos; ++i)
-			if (weights[i] > 0)
-				weights[i] = distf::back(distf::comp(
-				               ksharp.data() + kohos * dim,
-				               ksharp.data() + i * dim,
-				               dim)) /
-				             weights[i];
-#endif
-#if 0
-		std::vector<float> qes(kohos, 0);
-
-		for (size_t si = 0; si < kohos; ++si)
-			for (size_t di = 0; di < kohos; ++di) {
-				auto factor = get_gauss_factor_dstlevel(
-				  kohoid[si], kohoid[di], epochRadius);
-				qes[di] += factor * sqrf(distf::back(distf::comp(
-				                      koho.data() + si * dim,
-				                      koho.data() + di * dim,
-				                      dim)));
-				weights[di] += factor;
-			}
-		for (size_t i = 0; i < kohos; ++i)
-			if (weights[i] > 0)
-				qes[i] /= weights[i];
-
-
-#endif
-
-		// find kohos with largest quantization error
+		// find kohos with largest movement
 		std::vector<std::pair<float, size_t>> sqes(kohoid.size());
 		for (size_t i = 0; i < kohos; ++i)
 			sqes[i] =
