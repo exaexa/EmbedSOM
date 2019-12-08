@@ -252,7 +252,7 @@ GQTSOM <- function(data, init.dim=c(3,3), target_codes=100, rlen=10,
   else mapping <- MapDataToCodes(codes, data, parallel=parallel, threads=threads)
 
   list(xdim=xdim, ydim=ydim, rlen=rlen,
-    init=init, distf=distf, nhbr.distf=nhbr.distf,
+    distf=distf, nhbr.distf=nhbr.distf,
     epochRadii=epochRadii,
     grid=matrix(res$out.emcoords[1:(res$out.kohos*2)],
                 byrow=T, nrow=res$out.kohos, ncol=2),
