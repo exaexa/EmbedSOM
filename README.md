@@ -136,9 +136,14 @@ rgl::points3d(x=e[,1], y=e[,2], z=e[,3])
 ```
 
 #### What to do if embedding takes too long?
-#### How to activate the SIMD support?
 
-EmbedSOM has support for SIMD-assisted computation of both SOM and the embedding. If your CPU can work with SSE4 instructions (almost every `amd64` (a.k.a. `x64` a.k.a. `x86_64`) CPU built after around 2013 can do that), just tell R to compile your code with correct C++ flags, and SOM+EmbedSOM computation should get a bit faster! (in fact, usually at least around 3x faster, depending on the CPU and dataset shape).
+You may use parallelized versions of the algorithms. Several functions (`SOM`, `GQTSOM`, `EmbedSOM`) support setting `parallel=T`, which enables parallel processing; you may fine-tune the number of used CPUs by setting e.g. `threads=5`.
+
+For SOM training, you need to explicitly switch to the parallelizable batch version, using `batch=F`.
+
+#### How to activate the SIMD support? (i.e. how to get even more speed?)
+
+Additionally, EmbedSOM has support for SIMD-assisted computation of both SOM and the embedding. If your CPU can work with SSE4 instructions (almost every `amd64` (a.k.a. `x64` a.k.a. `x86_64`) CPU built after around 2013 can do that), just tell R to compile your code with correct C++ flags, and SOM+EmbedSOM computation should get a bit faster! (in fact, usually at least around 3x faster, depending on the CPU and dataset shape).
 
 First, add a correct line to the R `Makevars` config file:
 ```sh
