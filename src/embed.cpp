@@ -79,7 +79,7 @@ heap_down(dist_id *heap, size_t start, size_t lim)
 }
 
 template<class distf>
-void
+static void
 knn(const float *point,
     const float *koho,
     size_t kohos,
@@ -121,7 +121,7 @@ knn(const float *point,
  */
 
 template<int embed_dim>
-void
+static void
 add_gravity(const float *emcoords, float score, float *mtx)
 {
 	float gs = score * koho_gravity;
@@ -152,7 +152,7 @@ dotp_ec(const float *a, const float *b)
 }
 
 template<int embed_dim>
-void
+static void
 add_approximation(float score_i,
                   float score_j,
                   const float *iec,
@@ -199,7 +199,7 @@ add_approximation(float score_i,
 }
 
 template<int embed_dim>
-void
+static void
 solve_lin_eq(const float *mtx, float *embedding)
 {
 	if (embed_dim == 2) {
@@ -232,25 +232,15 @@ solve_lin_eq(const float *mtx, float *embedding)
 }
 
 /*
- * EmbedSOM function for a single point
+ * scoring
  */
-template<class distf, int embed_dim>
+template<class distf>
 static void
-embedsom_point(const size_t kohos,
-               const size_t dim,
-               const float boost,
-               const size_t topn,
-               const float adjust,
-               const float *point,
-               const float *koho,
-               const float *emcoords,
-               float *embedding,
-               vector<dist_id> &dists)
+sorted_dists_to_scores(vector<dist_id> &dists,
+                       size_t topn,
+                       size_t topnn,
+                       float boost)
 {
-	const size_t topnn = topn < kohos ? topn + 1 : topn;
-
-	knn<distf>(point, koho, kohos, dim, topnn, dists);
-
 	// compute the distance distribution for the scores
 	float mean = 0, sd = 0, wsum = 0;
 	for (size_t i = 0; i < topnn; ++i) {
@@ -274,6 +264,29 @@ embedsom_point(const size_t kohos,
 			  (1 - expf(dists[i].dist * nmax - max_avoidance));
 		else
 			dists[i].dist = expf((mean - dists[i].dist) * sd);
+}
+
+/*
+ * EmbedSOM function for a single point
+ */
+template<class distf, int embed_dim>
+static void
+embedsom_point(const size_t kohos,
+               const size_t dim,
+               const float boost,
+               const size_t topn,
+               const float adjust,
+               const float *point,
+               const float *koho,
+               const float *emcoords,
+               float *embedding,
+               vector<dist_id> &dists)
+{
+	const size_t topnn = topn < kohos ? topn + 1 : topn;
+
+	knn<distf>(point, koho, kohos, dim, topnn, dists);
+
+	sorted_dists_to_scores<distf>(dists, topn, topnn, boost);
 
 	// create the empty equation matrix
 	float mtx[embed_dim * (1 + embed_dim)];
@@ -413,6 +426,7 @@ C_embedSOM(int *pnthreads,
 	if (threads == 0)
 		threads = thread::hardware_concurrency();
 
+	// TODO c++ can't auto-promote finite term-level domains?
 	auto emf = embedsom<distfs::sqeucl, 2>;
 	if (embeddim == 2) {
 		if (*pdist == 1)
