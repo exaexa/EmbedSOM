@@ -8,4 +8,4 @@
 #include <xmmintrin.h>
 #endif
 
-#endif //use_intrins_h
+#endif // use_intrins_h

@@ -62,6 +62,49 @@ struct sqeucl
 		return sqdist;
 #endif
 	}
+
+	inline static void proj(const float* la,
+	                        const float* lb,
+	                        const float* p,
+	                        const size_t dim,
+	                        float& o_scalar,
+	                        float& o_sqdist)
+	{
+
+#ifndef USE_INTRINS
+		float scalar = 0, sqdist = 0;
+		for (size_t k = 0; k < dim; ++k) {
+			float tmp = lb[k] - la[k];
+			sqdist += tmp * tmp;
+			scalar += tmp * (p[k] - la[k]);
+		}
+#else
+		float scalar, sqdist;
+		{
+			const float *ke = la + dim, *kie = ke - 3;
+
+			__m128 sca = _mm_setzero_ps(), sqd = _mm_setzero_ps();
+			for (; la < kie; la += 4, lb += 4, p += 4) {
+				__m128 ti = _mm_loadu_ps(la);
+				__m128 tmp = _mm_sub_ps(_mm_loadu_ps(lb), ti);
+				sqd = _mm_add_ps(sqd, _mm_mul_ps(tmp, tmp));
+				sca = _mm_add_ps(
+				  sca,
+				  _mm_mul_ps(tmp,
+				             _mm_sub_ps(_mm_loadu_ps(p), ti)));
+			}
+			scalar = sca[0] + sca[1] + sca[2] + sca[3];
+			sqdist = sqd[0] + sqd[1] + sqd[2] + sqd[3];
+			for (; la < ke; ++la, ++lb, ++p) {
+				float tmp = *lb - *la;
+				sqdist += tmp * tmp;
+				scalar += tmp * (*p - *la);
+			}
+		}
+#endif
+		o_scalar = scalar;
+		o_sqdist = sqdist;
+	}
 };
 
 #ifdef USE_INTRINS
@@ -107,6 +150,27 @@ struct manh
 		return mdist;
 #endif
 	}
+
+	inline static void proj(const float* la,
+	                        const float* lb,
+	                        const float* p,
+	                        const size_t dim,
+	                        float& o_scalar,
+	                        float& o_sqdist)
+	{
+		// TODO verify if this is right, TODO SIMD
+		float max = 0;
+		size_t maxdim = 0;
+		for (size_t i = 0; i < dim; ++i) {
+			float tmp = abs(lb[i] - la[i]);
+			if (tmp > max) {
+				max = tmp;
+				maxdim = i;
+			}
+		}
+		o_scalar = p[maxdim] - la[maxdim];
+		o_sqdist = lb[maxdim] - la[maxdim];
+	}
 };
 
 struct chebyshev
@@ -137,6 +201,18 @@ struct chebyshev
 		}
 		return cdist;
 #endif
+	}
+
+	inline static void proj(const float* la,
+	                        const float* lb,
+	                        const float* p,
+	                        const size_t dim,
+	                        float& o_scalar,
+	                        float& o_sqdist)
+	{
+		// TODO FIXME
+		o_scalar = 0;
+		o_sqdist = 0;
 	}
 };
 };
