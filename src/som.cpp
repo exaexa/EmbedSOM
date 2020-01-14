@@ -48,9 +48,9 @@ som(size_t n,
     size_t k,
     size_t dim,
     size_t rlen,
-    const float* points,
-    float* koho,
-    const float* nhbrdist,
+    const float *points,
+    float *koho,
+    const float *nhbrdist,
     const float alphasA[2],
     const float radiiA[2],
     const float alphasB[2],
@@ -112,7 +112,7 @@ som(size_t n,
 #else
 			float *ki = koho + (i * dim), *ke = ki + dim,
 			      *kie = ke - 3;
-			const float* pi = points + (point * dim);
+			const float *pi = points + (point * dim);
 			__m128 al = _mm_set1_ps(alpha);
 			__m128 k = _mm_loadu_ps(ki);
 			for (; ki < kie; ki += 4, pi += 4) {
@@ -143,32 +143,32 @@ bsom(size_t threads,
      size_t kohos,
      size_t dim,
      size_t epochs,
-     const float* points,
-     float* koho,
-     const float* nhbrdist,
-     const float* radii)
+     const float *points,
+     float *koho,
+     const float *nhbrdist,
+     const float *radii)
 {
 	std::vector<std::thread> ts(threads);
 	std::vector<std::vector<float>> taccs, tws;
 	taccs.resize(threads);
-	for (auto& acc : taccs)
+	for (auto &acc : taccs)
 		acc.resize(kohos * dim);
 	tws.resize(threads);
-	for (auto& ws : tws)
+	for (auto &ws : tws)
 		ws.resize(kohos);
 	std::vector<float> weights(kohos);
 
 	for (size_t epoch = 0; epoch < epochs; ++epoch) {
 		auto reduce_func = [&](size_t thread_id) {
-			std::vector<float>& ws = tws[thread_id];
-			std::vector<float>& acc = taccs[thread_id];
+			std::vector<float> &ws = tws[thread_id];
+			std::vector<float> &acc = taccs[thread_id];
 			size_t dbegin = thread_id * n / threads,
 			       dend = (thread_id + 1) * n / threads;
-			const float* d = points + dbegin * dim;
+			const float *d = points + dbegin * dim;
 			size_t nd = dend - dbegin;
-			for (auto& x : acc)
+			for (auto &x : acc)
 				x = 0;
-			for (auto& x : ws)
+			for (auto &x : ws)
 				x = 0;
 
 			for (size_t i = 0; i < nd; ++i) {
@@ -194,7 +194,7 @@ bsom(size_t threads,
 		if (threaded) {
 			for (size_t i = 0; i < threads; ++i)
 				ts[i] = std::thread(reduce_func, i);
-			for (auto& t : ts)
+			for (auto &t : ts)
 				t.join();
 			for (size_t i = 1; i < threads; ++i)
 				for (size_t j = 0; j < kohos * dim; ++j)
@@ -208,7 +208,7 @@ bsom(size_t threads,
 
 		for (size_t i = 0; i < kohos * dim; ++i)
 			koho[i] = 0;
-		for (auto& w : weights)
+		for (auto &w : weights)
 			w = 0;
 
 		const float invSqSigma =
@@ -270,14 +270,14 @@ gqtsom(size_t threads,
        size_t in_kohos,
        size_t dim,
        size_t epochs,
-       const float* points,
-       const int* coords,
-       const float* codes,
-       const float* radii,
-       int* out_kohos,
-       float* out_koho,
-       int* out_coords,
-       float* out_emcoords)
+       const float *points,
+       const int *coords,
+       const float *codes,
+       const float *radii,
+       int *out_kohos,
+       float *out_koho,
+       int *out_coords,
+       float *out_emcoords)
 {
 	size_t target_kohos = *out_kohos;
 
@@ -309,7 +309,7 @@ gqtsom(size_t threads,
 			/* the type conversion here seems a bit harsh
 			 * but the standard says that it should work */
 			return exp(-sqrf(nhbr_distf::back(nhbr_distf::comp(
-			                   (float*)&spos, (float*)&dpos, 2)) *
+			                   (float *)&spos, (float *)&dpos, 2)) *
 			                 (1 << d.level) / radius));
 		};
 
@@ -317,18 +317,18 @@ gqtsom(size_t threads,
 
 		// find nearest neighbors for SOM update
 		auto collect_kohos = [&](size_t thread_id) {
-			std::vector<float>& ws = tws[thread_id];
-			std::vector<float>& acc = taccs[thread_id];
+			std::vector<float> &ws = tws[thread_id];
+			std::vector<float> &acc = taccs[thread_id];
 			size_t dbegin = thread_id * n / threads,
 			       dend = (thread_id + 1) * n / threads;
-			const float* d = points + dbegin * dim;
+			const float *d = points + dbegin * dim;
 			size_t nd = dend - dbegin;
 			acc.resize(kohos * dim);
 			ws.resize(kohos);
 
-			for (auto& x : acc)
+			for (auto &x : acc)
 				x = 0;
-			for (auto& x : ws)
+			for (auto &x : ws)
 				x = 0;
 
 			for (size_t i = 0; i < nd; ++i) {
@@ -372,9 +372,9 @@ gqtsom(size_t threads,
 		} else
 			collect_kohos(0);
 
-		std::vector<float> diffs(kohos,0),weights(kohos, 0), oldkoho;
+		std::vector<float> diffs(kohos, 0), weights(kohos, 0), oldkoho;
 		oldkoho.swap(koho);
-		koho.resize(kohos*dim, 0);
+		koho.resize(kohos * dim, 0);
 
 		// gaussify
 		for (size_t si = 0; si < kohos; ++si)
@@ -392,7 +392,10 @@ gqtsom(size_t threads,
 			if (weights[i] > 0) {
 				for (size_t k = 0; k < dim; ++k)
 					koho[i * dim + k] /= weights[i];
-			diffs[i]=distf::comp(koho.data()+i*dim, oldkoho.data()+i*dim, dim)*weights[i];
+				diffs[i] = distf::comp(koho.data() + i * dim,
+				                       oldkoho.data() + i * dim,
+				                       dim) *
+				           weights[i];
 			}
 
 		// do not spawn new kohos in the last epoch
@@ -403,7 +406,7 @@ gqtsom(size_t threads,
 		std::vector<std::pair<float, size_t>> sqes(kohoid.size());
 		for (size_t i = 0; i < kohos; ++i)
 			sqes[i] =
-			  std::make_pair(diffs[i] / (1+kohoid[i].level), i);
+			  std::make_pair(diffs[i] / (1 + kohoid[i].level), i);
 
 		size_t target_nodes =
 		  ((epoch)*target_kohos + (epochs - epoch - 2) * in_kohos) /
@@ -439,7 +442,7 @@ gqtsom(size_t threads,
 			a[2].offset(0, 1);
 			a[3].offset(1, 1);
 
-			auto gauss_guess = [&](kohoid_t k, float* out) {
+			auto gauss_guess = [&](kohoid_t k, float *out) {
 				float w = 0;
 				for (size_t d = 0; d < dim; ++d)
 					out[d] = 0;
@@ -499,10 +502,10 @@ mapNNs(size_t threads,
        size_t n,
        size_t k,
        size_t dim,
-       const float* points,
-       const float* koho,
-       int* mapping,
-       float* dists)
+       const float *points,
+       const float *koho,
+       int *mapping,
+       float *dists)
 {
 	if (threaded) {
 		std::vector<std::thread> ts(threads);
@@ -511,16 +514,16 @@ mapNNs(size_t threads,
 			  [&](size_t thread_id) {
 				  size_t dbegin = thread_id * n / threads,
 				         dend = (thread_id + 1) * n / threads;
-				  const float* d = points + dbegin * dim;
-				  int* m = mapping + dbegin;
-				  float* dd = dists + dbegin;
+				  const float *d = points + dbegin * dim;
+				  int *m = mapping + dbegin;
+				  float *dd = dists + dbegin;
 				  size_t nd = dend - dbegin;
 
 				  mapNNs<distf, false>(
 				    1, nd, k, dim, d, koho, m, dd);
 			  },
 			  i);
-		for (auto& t : ts)
+		for (auto &t : ts)
 			t.join();
 		return;
 	}
@@ -547,18 +550,18 @@ mapNNs(size_t threads,
  */
 
 extern "C" void
-es_C_SOM(float* points,
-         float* koho,
-         float* nhbrdist,
-         float* alphasA,
-         float* radiiA,
-         float* alphasB,
-         float* radiiB,
-         Sint* pn,
-         Sint* pdim,
-         Sint* pkohos,
-         Sint* prlen,
-         Sint* dist)
+es_C_SOM(float *points,
+         float *koho,
+         float *nhbrdist,
+         float *alphasA,
+         float *radiiA,
+         float *alphasB,
+         float *radiiB,
+         Sint *pn,
+         Sint *pdim,
+         Sint *pkohos,
+         Sint *prlen,
+         Sint *dist)
 {
 	size_t n = *pn, dim = *pdim, kohos = *pkohos, rlen = *prlen;
 
@@ -582,16 +585,16 @@ es_C_SOM(float* points,
 }
 
 extern "C" void
-es_C_BatchSOM(int* pnthreads,
-              float* points,
-              float* koho,
-              float* nhbrdist,
-              float* radii,
-              Sint* pn,
-              Sint* pdim,
-              Sint* pkohos,
-              Sint* prlen,
-              Sint* dist)
+es_C_BatchSOM(int *pnthreads,
+              float *points,
+              float *koho,
+              float *nhbrdist,
+              float *radii,
+              Sint *pn,
+              Sint *pdim,
+              Sint *pkohos,
+              Sint *prlen,
+              Sint *dist)
 {
 
 	int n = *pn, dim = *pdim, kohos = *pkohos, rlen = *prlen;
@@ -616,21 +619,21 @@ es_C_BatchSOM(int* pnthreads,
 }
 
 extern "C" void
-es_C_GQTSOM(int* pnthreads,
-            float* points,
-            int* coords,
-            float* codes,
-            float* radii,
-            int* out_ncodes,
-            float* out_codes,
-            int* out_coords,
-            float* out_emcoords,
-            int* pn,
-            int* pdim,
-            int* pkohos,
-            int* prlen,
-            int* distf,
-            int* nhbr_distf)
+es_C_GQTSOM(int *pnthreads,
+            float *points,
+            int *coords,
+            float *codes,
+            float *radii,
+            int *out_ncodes,
+            float *out_codes,
+            int *out_coords,
+            float *out_emcoords,
+            int *pn,
+            int *pdim,
+            int *pkohos,
+            int *prlen,
+            int *distf,
+            int *nhbr_distf)
 {
 	size_t n = *pn, dim = *pdim, kohos = *pkohos, rlen = *prlen,
 	       threads = *pnthreads;
@@ -679,15 +682,15 @@ es_C_GQTSOM(int* pnthreads,
 }
 
 extern "C" void
-es_C_mapDataToCodes(int* pnthreads,
-                    float* points,
-                    float* koho,
-                    int* pn,
-                    int* pdim,
-                    int* pkohos,
-                    int* mapping,
-                    float* dists,
-                    int* dist)
+es_C_mapDataToCodes(int *pnthreads,
+                    float *points,
+                    float *koho,
+                    int *pn,
+                    int *pdim,
+                    int *pkohos,
+                    int *mapping,
+                    float *dists,
+                    int *dist)
 {
 	int n = *pn, dim = *pdim, kohos = *pkohos;
 

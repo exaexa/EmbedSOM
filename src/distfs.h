@@ -34,8 +34,8 @@ using std::max;
 struct sqeucl
 {
 	inline static float back(float x) { return sqrt(x); }
-	inline static float comp(const float* p1,
-	                         const float* p2,
+	inline static float comp(const float *p1,
+	                         const float *p2,
 	                         const size_t dim)
 	{
 #ifndef USE_INTRINS
@@ -63,12 +63,12 @@ struct sqeucl
 #endif
 	}
 
-	inline static void proj(const float* la,
-	                        const float* lb,
-	                        const float* p,
+	inline static void proj(const float *la,
+	                        const float *lb,
+	                        const float *p,
 	                        const size_t dim,
-	                        float& o_scalar,
-	                        float& o_sqdist)
+	                        float &o_scalar,
+	                        float &o_sqdist)
 	{
 
 #ifndef USE_INTRINS
@@ -124,8 +124,8 @@ vec_abs(__m128 v)
 struct manh
 {
 	inline static float back(float x) { return x; }
-	inline static float comp(const float* p1,
-	                         const float* p2,
+	inline static float comp(const float *p1,
+	                         const float *p2,
 	                         const size_t dim)
 	{
 #ifndef USE_INTRINS
@@ -151,12 +151,12 @@ struct manh
 #endif
 	}
 
-	inline static void proj(const float* la,
-	                        const float* lb,
-	                        const float* p,
+	inline static void proj(const float *la,
+	                        const float *lb,
+	                        const float *p,
 	                        const size_t dim,
-	                        float& o_scalar,
-	                        float& o_sqdist)
+	                        float &o_scalar,
+	                        float &o_sqdist)
 	{
 		// TODO verify if this is right, TODO SIMD
 		float max = 0;
@@ -176,8 +176,8 @@ struct manh
 struct chebyshev
 {
 	inline static float back(float x) { return x; }
-	inline static float comp(const float* p1,
-	                         const float* p2,
+	inline static float comp(const float *p1,
+	                         const float *p2,
 	                         const size_t dim)
 	{
 #ifndef USE_INTRINS
@@ -203,12 +203,12 @@ struct chebyshev
 #endif
 	}
 
-	inline static void proj(const float* la,
-	                        const float* lb,
-	                        const float* p,
+	inline static void proj(const float *la,
+	                        const float *lb,
+	                        const float *p,
 	                        const size_t dim,
-	                        float& o_scalar,
-	                        float& o_sqdist)
+	                        float &o_scalar,
+	                        float &o_sqdist)
 	{
 		// TODO FIXME
 		o_scalar = 0;

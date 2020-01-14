@@ -49,7 +49,7 @@ struct dist_id
 };
 
 static void
-heap_down(dist_id* heap, size_t start, size_t lim)
+heap_down(dist_id *heap, size_t start, size_t lim)
 {
 	for (;;) {
 		size_t L = 2 * start + 1;
@@ -80,12 +80,12 @@ heap_down(dist_id* heap, size_t start, size_t lim)
 
 template<class distf>
 void
-knn(const float* point,
-    const float* koho,
+knn(const float *point,
+    const float *koho,
     size_t kohos,
     size_t dim,
     size_t topnn,
-    vector<dist_id>& dists)
+    vector<dist_id> &dists)
 {
 	size_t i;
 
@@ -122,7 +122,7 @@ knn(const float* point,
 
 template<int embed_dim>
 void
-add_gravity(const float* emcoords, float score, float* mtx)
+add_gravity(const float *emcoords, float score, float *mtx)
 {
 	float gs = score * koho_gravity;
 	if (embed_dim == 2) {
@@ -143,7 +143,7 @@ add_gravity(const float* emcoords, float score, float* mtx)
 
 template<int embed_dim>
 inline static float
-dotp_ec(const float* a, const float* b)
+dotp_ec(const float *a, const float *b)
 {
 	float r = 0;
 	for (size_t i = 0; i < embed_dim; ++i)
@@ -155,11 +155,11 @@ template<int embed_dim>
 void
 add_approximation(float score_i,
                   float score_j,
-                  const float* iec,
-                  const float* jec,
+                  const float *iec,
+                  const float *jec,
                   float scalar_proj,
                   float adjust,
-                  float* mtx)
+                  float *mtx)
 {
 	float h[embed_dim], hp = 0;
 	for (size_t i = 0; i < embed_dim; ++i)
@@ -200,7 +200,7 @@ add_approximation(float score_i,
 
 template<int embed_dim>
 void
-solve_lin_eq(const float* mtx, float* embedding)
+solve_lin_eq(const float *mtx, float *embedding)
 {
 	if (embed_dim == 2) {
 		float det = mtx[0] * mtx[3] - mtx[1] * mtx[2];
@@ -241,11 +241,11 @@ embedsom_point(const size_t kohos,
                const float boost,
                const size_t topn,
                const float adjust,
-               const float* point,
-               const float* koho,
-               const float* emcoords,
-               float* embedding,
-               vector<dist_id>& dists)
+               const float *point,
+               const float *koho,
+               const float *emcoords,
+               float *embedding,
+               vector<dist_id> &dists)
 {
 	const size_t topnn = topn < kohos ? topn + 1 : topn;
 
@@ -334,10 +334,10 @@ embedsom(const size_t threads,
          const float boost,
          const size_t topn,
          const float adjust,
-         const float* points,
-         const float* koho,
-         const float* emcoords,
-         float* embedding)
+         const float *points,
+         const float *koho,
+         const float *emcoords,
+         float *embedding)
 {
 	// spawn more batches in threads if parallelization is required
 	if (threads > 1) {
@@ -347,8 +347,8 @@ embedsom(const size_t threads,
 			  [&](size_t thread_id) {
 				  size_t dbegin = thread_id * n / threads,
 				         dend = (thread_id + 1) * n / threads;
-				  const float* d = points + dbegin * dim;
-				  float* e = embedding + dbegin * embed_dim;
+				  const float *d = points + dbegin * dim;
+				  float *e = embedding + dbegin * embed_dim;
 				  size_t nd = dend - dbegin;
 
 				  embedsom<distf, embed_dim>(1,
@@ -364,7 +364,7 @@ embedsom(const size_t threads,
 				                             e);
 			  },
 			  i);
-		for (auto& t : ts)
+		for (auto &t : ts)
 			t.join();
 		return;
 	}
@@ -389,19 +389,19 @@ embedsom(const size_t threads,
 }
 
 extern "C" void
-C_embedSOM(int* pnthreads,
-           int* pedim,
-           int* pn,
-           int* pkohos,
-           int* pdim,
-           int* pdist,
-           float* pboost,
-           int* pneighbors,
-           float* padjust,
-           float* points,
-           float* koho,
-           float* emcoords,
-           float* embedding)
+C_embedSOM(int *pnthreads,
+           int *pedim,
+           int *pn,
+           int *pkohos,
+           int *pdim,
+           int *pdist,
+           float *pboost,
+           int *pneighbors,
+           float *padjust,
+           float *points,
+           float *koho,
+           float *emcoords,
+           float *embedding)
 {
 	int embeddim = *pedim;
 	size_t n = *pn, dim = *pdim, kohos = *pkohos;
@@ -461,7 +461,7 @@ static const R_CMethodDef cMethods[] = {
 };
 
 void
-R_init_EmbedSOM(DllInfo* info)
+R_init_EmbedSOM(DllInfo *info)
 {
 	R_registerRoutines(info, cMethods, NULL, NULL, NULL);
 	R_useDynamicSymbols(info, FALSE);
