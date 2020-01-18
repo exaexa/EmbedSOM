@@ -603,7 +603,7 @@ es_C_BatchSOM(int *pnthreads,
               Sint *dist)
 {
 
-	int n = *pn, dim = *pdim, kohos = *pkohos, rlen = *prlen;
+	size_t n = *pn, dim = *pdim, kohos = *pkohos, rlen = *prlen;
 
 	int threads = *pnthreads;
 
@@ -641,8 +641,8 @@ es_C_GQTSOM(int *pnthreads,
             int *distf,
             int *nhbr_distf)
 {
-	size_t n = *pn, dim = *pdim, kohos = *pkohos, rlen = *prlen,
-	       threads = *pnthreads;
+	size_t n = *pn, dim = *pdim, kohos = *pkohos, rlen = *prlen;
+	int threads = *pnthreads;
 
 	if (threads < 0)
 		threads = 1;
@@ -698,8 +698,7 @@ es_C_mapDataToCodes(int *pnthreads,
                     float *dists,
                     int *dist)
 {
-	int n = *pn, dim = *pdim, kohos = *pkohos;
-
+	size_t n = *pn, dim = *pdim, kohos = *pkohos;
 	int threads = *pnthreads;
 
 	if (threads < 0)
