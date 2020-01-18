@@ -1,5 +1,5 @@
 Package: EmbedSOM
-Version: 2.0
+Version: 2.1
 Title: Fast Embedding Guided by Self-Organizing Map
 Authors@R: c(person("Mirek", "Kratochvil",
                     role = c("aut", "cre"),
