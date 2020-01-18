@@ -157,6 +157,7 @@ bsom(size_t threads,
 	for (auto &ws : tws)
 		ws.resize(kohos);
 	std::vector<float> weights(kohos);
+	std::vector<float> oldkoho(kohos * dim);
 
 	for (size_t epoch = 0; epoch < epochs; ++epoch) {
 		auto reduce_func = [&](size_t thread_id) {
@@ -206,10 +207,9 @@ bsom(size_t threads,
 		} else
 			reduce_func(0);
 
-		for (size_t i = 0; i < kohos * dim; ++i)
-			koho[i] = 0;
-		for (auto &w : weights)
-			w = 0;
+		std::copy_n(koho, kohos * dim, oldkoho.data());
+		std::fill_n(koho, kohos * dim, 0);
+		std::fill_n(weights.data(), kohos, 0);
 
 		const float invSqSigma =
 		  -powf(std::max(min_radius, radii[epoch]), -2);
@@ -228,6 +228,10 @@ bsom(size_t threads,
 			if (weights[i] > 0)
 				for (size_t k = 0; k < dim; ++k)
 					koho[i * dim + k] /= weights[i];
+			else
+				std::copy_n(oldkoho.data() + i * dim,
+				            dim,
+				            koho + i * dim);
 	}
 }
 
@@ -396,7 +400,10 @@ gqtsom(size_t threads,
 				                       oldkoho.data() + i * dim,
 				                       dim) *
 				           weights[i];
-			}
+			} else
+				std::copy_n(oldkoho.data() + i * dim,
+				            dim,
+				            koho.data() + i * dim);
 
 		// do not spawn new kohos in the last epoch
 		if (epoch + 1 >= epochs)
@@ -444,8 +451,7 @@ gqtsom(size_t threads,
 
 			auto gauss_guess = [&](kohoid_t k, float *out) {
 				float w = 0;
-				for (size_t d = 0; d < dim; ++d)
-					out[d] = 0;
+				std::fill_n(out, dim, 0);
 				for (size_t ki = 0; ki < kohoid.size(); ++ki) {
 					auto factor = get_gauss_factor_dstlevel(
 					  kohoid[ki], k, 1);
