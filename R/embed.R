@@ -1,6 +1,6 @@
 # This file is part of EmbedSOM.
 #
-# Copyright (C) 2018-2019 Mirek Kratochvil <exa.exa@gmail.com>
+# Copyright (C) 2018-2020 Mirek Kratochvil <exa.exa@gmail.com>
 # 
 # EmbedSOM is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,8 +24,10 @@
 #' @param k How many SOM neighbors to take into the whole computation
 #' @param adjust How much non-local information to remove (parameter a)
 #' @param importance Importance of dimensions that was used to train the SOM
-#' @param emcoords Either a matrix of embedded coordinates (same number of rows as map$coords, and either 2 or 3 columns depending on the SOM grid dimension), or one of 'flat' (default behavior), 'som' (adjust the SOM coords according to U-matrix distances), 'mst' (embed to MST-like structure), 'fsom-mst' (embed to MST that should look exactly like that of FlowSOM), 'tsne' (embed using tSNE from package Rtsne), 'umap' (embed using UMAP from package umap) or 'uwot::umap' (embed using UMAP from package uwot)
-#' @param emcoords.pow Exaggeration factor (power) of the distances in U-matrix used for some methods of auto-generating emcoords; default 1.
+#' @param coords A matrix of embedding-space coordinates that correspond to 'map$codes' (i.e. the "embedded landmarks"). Overrides 'map$grid' if not NULL.
+#' @param coordsFn A coordinates-generating function (e.g. 'EmbedSOM::tSNECoords()') that overrides the existing 'map$grid'.
+#' @param emcoords Provided for backwards compatibility, will be removed. Either a matrix of embedded coordinates (same number of rows as 'map$codes', and either 2 or 3 columns depending on the SOM grid dimension), or one of 'flat' (default behavior), 'som' (adjust the SOM coords according to U-matrix distances), 'mst' (embed to MST-like structure), 'fsom-mst' (embed to MST that should look exactly like that of FlowSOM), 'tsne' (embed using tSNE from package Rtsne), 'umap' (embed using UMAP from package umap) or 'uwot::umap' (embed using UMAP from package uwot)
+#' @param emcoords.pow Provided for backwards compatibility, will be removed. Exaggeration factor (power) of the distances in U-matrix used for some methods of auto-generating emcoords; default 1.
 #' @param threads Number of threads used for computation, 0 chooses hardware concurrency, 1 (default) turns off parallelization.
 #' @param parallel Boolean flag whether the computation should be parallelized (this flag is just a nice name for 'threads' and does not do anything directly -- default FALSE sets threads=1, TRUE sets threads=0)
 #' @return matrix with 2D or 3D coordinates of the embedded cels, depending on the map
@@ -39,9 +41,11 @@
 #' @useDynLib EmbedSOM, .registration = TRUE
 #' @export
 
-EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
-                     data=NULL, map=NULL, importance=NULL,
-                     emcoords='flat', emcoords.pow=1,
+EmbedSOM <- function(data=NULL, map=NULL, fsom=NULL,
+                     smooth=NULL, k=NULL, adjust=NULL,
+                     importance=NULL,
+                     coordsFn=NULL, coords=NULL,
+                     emcoords=NULL, emcoords.pow=1,
                      parallel=F, threads=if (parallel) 0 else 1) {
 
   if(is.null(map)) {
@@ -56,13 +60,34 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
     } else data <- fsom$data
   }
 
-  somdim <- dim(map$grid)[2]
+  if(is.null(coordsFn) && !is.null(emcoords)) {
+    if(length(emcoords)!=1)
+      coords <- emcoords
+    else {
+      warn("emcoords parameter will be deprecated, use coordsFn instead.")
+      if(emcoords=='flat') coordsFn <- function(x)x
+      if(emcoords=='som') coordsFn <- UMatrixCoords(distFn=function(x)x^emcoords.pow)
+      if(emcoords=='mst') coordsFn <- MSTCoords(distFn=function(x)x^emcoords.pow)
+      if(emcoords=='fsom-mst') coordsFn <- MSTCoords(distFn=function(x)x^emcoords.pow,
+        layoutFn=function(coords,...)igraph::layout_with_kk(...))
+      if(emcoords=='tsne') coordsFn <- tSNECoords()
+      if(emcoords=='umap') coordsFn <- UMAPCoords()
+      if(emcoords=='uwot') coordsFn <- uwotCoords()
+    }
+  }
+
+  if(is.null(coords)) {
+    if(!is.null(coordsFn))
+      map <- coordsFn(map)
+    coords <- map$grid
+  }
+
+  if(is.null(coords))
+    stop("Missing embedding coordinates (specify coords or coordsFn, or use a map with grid)")
+
+  somdim <- dim(coords)[2]
   if(!(somdim %in% c(2,3)))
     stop("Unsupported embedding dimension (check size of the grid).")
-
-  x <- map$xdim
-  y <- map$ydim
-  z <- map$zdim
 
   ncodes <- dim(map$codes)[1]
 
@@ -107,61 +132,30 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
   } else
     points <- t(data[,colsUsed])
 
-  if(length(emcoords)==1) {
-    theGrid <- as.matrix(map$grid)
-
-    if(emcoords=='flat') {
-      emcoords <- theGrid
-    } else if(emcoords=='som') {
-      emcoords <- igraph::layout_with_kk(coords=theGrid, dim=somdim,
-        igraph::graph_from_adjacency_matrix(mode='undirected', weighted=T,
-          as.matrix(igraph::as_adjacency_matrix(
-            igraph::make_lattice(if(somdim==2) {c(x,y)} else {c(x,y,z)})))
-          *
-          as.matrix(stats::dist(map$codes))^emcoords.pow))
-    } else if(emcoords=='mst') {
-      emcoords <- igraph::layout_with_kk(coords=theGrid, dim=somdim,
-        igraph::mst(
-          igraph::graph_from_adjacency_matrix(mode='undirected', weighted=T,
-            as.matrix(stats::dist(map$codes))^emcoords.pow)))
-    } else if(emcoords=='fsom-mst') {
-      emcoords <- igraph::layout_with_kk(dim=somdim, igraph::mst(
-          igraph::graph_from_adjacency_matrix(mode='undirected', weighted=T,
-            as.matrix(stats::dist(map$codes)))))
-    } else if(emcoords=='tsne') {
-      emcoords <- Rtsne::Rtsne(map$codes, dims=somdim)$Y
-    } else if(emcoords=='uwot::umap') {
-      emcoords <- uwot::umap(map$codes, n_components=somdim)
-    } else if(emcoords=='umap') {
-      cfg <- umap::umap.defaults
-      cfg$n_components <- somdim
-      emcoords <- umap::umap(map$codes, cfg)$layout
-    } else stop("unsupported emcoords method")
-  }
 
   if(somdim==2) {
-    if(dim(emcoords)[1] != ncodes || dim(emcoords)[2] != 2) {
+    if(dim(coords)[1] != ncodes || dim(coords)[2] != 2) {
       stop("Embedding coordinates need to be of dimension (n_codes, 2).")
     }
   } else {
-    if(dim(emcoords)[1] != ncodes || dim(emcoords)[2] != 3) {
+    if(dim(coords)[1] != ncodes || dim(coords)[2] != 3) {
       stop("Embedding coordinates need to be of dimension (n_codes, 3).")
     }
   }
 
   # validate size of all data matrices that go into C
   if(dim(map$codes)[1] != ncodes || dim(map$codes)[2] != dim)
-    stop("wrong size of SOM codebook")
+    stop("wrong size of the codebook")
 
   # points are already transposed
   if(dim(points)[2] != ndata || dim(points)[1] != dim)
     stop("wrong size of the input data (check out the column names)")
 
-  if(dim(emcoords)[1] != ncodes || dim(emcoords)[2] != somdim)
-    stop("wrong emcoords size")
+  if(dim(coords)[1] != ncodes || dim(coords)[2] != somdim)
+    stop("wrong number of embedding coordinates")
 
   codes <- t(map$codes)
-  emcoords <- t(emcoords)
+  coords <- t(coords)
 
   embedding <- matrix(0, ncol=nrow(data), nrow=somdim)
 
@@ -181,7 +175,7 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
 
     points=as.single(points),
     koho=as.single(codes),
-    emcoords=as.single(emcoords),
+    coords=as.single(coords),
 
     embedding=as.single(embedding))
 
@@ -189,5 +183,5 @@ EmbedSOM <- function(fsom=NULL, smooth=NULL, k=NULL, adjust=NULL,
     byrow=T,
     nrow=nrow(data),
     ncol=somdim,
-    dimnames=list(NULL,paste0('EmbedSOM',1:somdim)))
+    dimnames=list(NULL,paste0('EmbedSOM',seq_len(somdim))))
 }

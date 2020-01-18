@@ -1,7 +1,7 @@
 
 /* This file is part of EmbedSOM.
  *
- * Copyright (C) 2018-2019 Mirek Kratochvil <exa.exa@gmail.com>
+ * Copyright (C) 2018-2020 Mirek Kratochvil <exa.exa@gmail.com>
  *
  * EmbedSOM is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free

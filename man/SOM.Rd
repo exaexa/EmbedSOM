@@ -8,11 +8,11 @@ SOM(data, xdim = 10, ydim = 10, zdim = NULL, batch = F,
   rlen = 10, alphaA = c(0.05, 0.01),
   radiusA = stats::quantile(nhbrdist, 0.67) * c(1, 0), alphaB = alphaA
   * c(-negAlpha, -0.1 * negAlpha), radiusB = negRadius * radiusA,
-  epochRadii = seq(radiusA[1], radiusA[2], length.out = rlen),
-  init = FALSE, initf = Initialize_PCA, distf = 2, codes = NULL,
-  importance = NULL, nhbr.method = "maximum", negRadius = 1.33,
-  negAlpha = 0.1, noMapping = F, parallel = F, threads = if
-  (parallel) 0 else 1)
+  negRadius = 1.33, negAlpha = 0.1, epochRadii = seq(radiusA[1],
+  radiusA[2], length.out = rlen), init = FALSE, initf = Initialize_PCA,
+  distf = 2, codes = NULL, importance = NULL, coordsFn = NULL,
+  nhbr.method = "maximum", noMapping = F, parallel = F,
+  threads = if (parallel) 0 else 1)
 }
 \arguments{
 \item{data}{Matrix containing the training data}
@@ -35,6 +35,11 @@ SOM(data, xdim = 10, ydim = 10, zdim = NULL, batch = F,
 
 \item{radiusB}{Start and end radius (only for online training; make sure it's larger than radiusA)}
 
+\item{negRadius}{easy way to set radiusB as a multiple of default radius
+(use lower value for higher dimensions)}
+
+\item{negAlpha}{the same for alphaB}
+
 \item{epochRadii}{Vector of length 'rlen' with precise epoch radii (only for batch training)}
 
 \item{init}{Initialize cluster centers in a non-random way}
@@ -49,12 +54,9 @@ SOM(data, xdim = 10, ydim = 10, zdim = NULL, batch = F,
 \item{importance}{array with numeric values. Parameters will be scaled
 according to importance}
 
+\item{coordsFn}{Function to generate/transform grid coordinates (e.g. 'EmbedSOM::tSNECoords()'). If NULL (default), the grid is the canonical SOM grid.}
+
 \item{nhbr.method}{Way of computing grid distances, passed as method= to dist() function. Default 'maximum' (square neighborhoods); use 'euclidean' for round neighborhoods.}
-
-\item{negRadius}{easy way to set radiusB as a multiple of default radius
-(use lower value for higher dimensions)}
-
-\item{negAlpha}{the same for alphaB}
 
 \item{noMapping}{If true, do not produce mapping (default F). Useful for online/streaming use.}
 
@@ -63,7 +65,7 @@ according to importance}
 \item{threads}{Number of threads of batch training (has no effect on online training). Defaults to 0 (chooses maximum available hardware threads) if parallel=TRUE or 1 (single thread) if parallel=FALSE. Passed to 'MapDataToCodes'.}
 }
 \value{
-A map, which is a list containing all parameter settings and results
+A map useful for embedding ('EmbedSOM' function) or further analysis.
 }
 \description{
 Build a self-organizing map

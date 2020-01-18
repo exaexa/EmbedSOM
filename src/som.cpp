@@ -1,7 +1,7 @@
 
 /* This file is part of EmbedSOM.
  *
- * Copyright (C) 2018-2019 Mirek Kratochvil <exa.exa@gmail.com>
+ * Copyright (C) 2018-2020 Mirek Kratochvil <exa.exa@gmail.com>
  *
  * Parts of the code are based on FlowSOM,
  * Copyright (C) 2016-2019 Sofie Van Gassen et al.

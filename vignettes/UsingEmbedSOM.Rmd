@@ -57,7 +57,7 @@ EmbedSOM provides some level of compatibility with FlowSOM that can be used to s
 
 ```{r eval=FALSE}
 fs <- FlowSOM::ReadInput(as.matrix(data.frame(data)))
-fs <- FlowSOM::BuildSOM(fs, xdim=24, ydim=24)
+fs <- FlowSOM::BuildSOM(fsom=fs, xdim=24, ydim=24)
 ```
 
 $24\times24$ is the recommended SOM size for getting something interesting from EmbedSOM -- it provides a good amount of detail, and still runs quite quickly.
@@ -72,19 +72,19 @@ e <- EmbedSOM::EmbedSOM(data=data, map=map)
 
 Alternatively, FlowSOM objects are supported to be used instead of `data` and `map` parameters in most EmbedSOM commands:
 ```{r eval=FALSE}
-e <- EmbedSOM::EmbedSOM(fs)
+e <- EmbedSOM::EmbedSOM(fsom=fs)
 ```
 
-Several extra parameters may be specified; e.g. this makes the embedding a bit smoother (but not necessarily better). See the EmbedSOM paper on bioRxiv for details on parameters:
+Several extra parameters may be specified; e.g. the following code makes the embedding a bit smoother and faster (but not necessarily better). See the EmbedSOM paper for details on parameters.
 
 ```{r}
 e <- EmbedSOM::EmbedSOM(data=data, map=map, smooth=2, k=10)
 ```
 
-`e` now contains dimensionality-reduced 2D coordinates of the original data that can be directly used for plotting:
+Finally, `e` now contains the dimensionality-reduced 2D coordinates of the original data that can be used for plotting.
 
 ```{r}
-print(e[1:10,])
+head(e)
 ```
 
 ## Plotting the data
