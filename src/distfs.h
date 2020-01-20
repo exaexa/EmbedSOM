@@ -210,9 +210,38 @@ struct chebyshev
 	                        float &o_scalar,
 	                        float &o_sqdist)
 	{
-		// TODO FIXME
-		o_scalar = 0;
-		o_sqdist = 0;
+		/*
+		 * This is pretty tricky (and quite slow for high dimensions)
+		 */
+
+		float scalarmax = 0;
+		float sqdistmax = 1;
+		float dmax = 0;
+		for (size_t i = 0; i < dim; ++i)
+			for (size_t j = i + 1; j < dim; ++j) {
+				float a1 = la[i] - p[i], a2 = la[j] - p[j],
+				      d1 = lb[i] - la[i], d2 = lb[j] - la[j];
+				if (d1 < 0) {
+					a1 *= -1;
+					d1 *= -1;
+				}
+				if (d2 < 0) {
+					a2 *= -1;
+					d2 *= -1;
+				}
+				if (d1 + d2 == 0)
+					continue;
+				float scalar = -(a1 + a2);
+				float sqdist = (d1 + d2);
+				float d = abs(a1 + scalar * d1 / sqdist);
+				if (d > dmax) {
+					dmax = d;
+					scalarmax = scalar;
+					sqdistmax = sqdist;
+				}
+			}
+		o_scalar = scalarmax;
+		o_sqdist = sqdistmax;
 	}
 };
 };
