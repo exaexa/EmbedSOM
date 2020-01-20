@@ -39,6 +39,7 @@ guessDistMethod <- function(dist.method, map) {
 #'
 #' @param data Input data matrix, with individual data points in rows
 #' @param k How many points to sample
+#' @param coordsFn a function to generate embedding coordinates (default none)
 #' @return map object (without the grid, if coordsFn was not specified)
 #'
 #' @examples
@@ -60,9 +61,17 @@ RandomMap <- function(data, k, coordsFn) {
 #'
 #' May give better results than 'RandomMap' on data where random sampling
 #' is complicated.
+#' This does not use actual kMeans clustering, but re-uses the batch SOM with
+#' tiny radius (which is the same as kMeans). In consequence, the speedup of
+#' SOM function is applied here as well. Additionally, because we don't need
+#' that amount of clustering precision, parameters 'batch=F, rlen=1' may give
+#' a satisfactory result very quickly.
 #'
 #' @param data Input data matrix, with individual data points in rows
 #' @param k How many points to sample
+#' @param coordsFn a function to generate embedding coordinates (default none)
+#' @param batch Use batch-SOM training (effectively kMeans, default T)
+#' @param ... Passed to 'SOM', useful e.g. for 'parallel=T' or 'rlen=5'
 #' @return map object (without the grid, if coordsFn was not specified)
 #'
 #' @examples
@@ -74,10 +83,15 @@ RandomMap <- function(data, k, coordsFn) {
 #'   pch=19, clust=iris[,5]
 #' )
 #' @export
-kMeansMap <- function(data, k, coordsFn, ...) {
-  map <- RandomMap(data,k)
-  km <- kmeans(data, map$codes, ...)
-  map <- list(codes=km$centers, mapping=matrix(km$cluster, ncol=1))
+kMeansMap <- function(data, k, coordsFn, batch=T, ...) {
+  map <- SOM(data,
+             xdim=k, ydim=1,
+             negRadius=0, negAlpha=0,
+             batch=batch, radiusA=c(0.001, 0.001),
+             ...)
+  map$xdim <- NULL # pretend there was no SOM
+  map$ydim <- NULL
+  map$grid <- NULL
   if(missing(coordsFn)) map
   else coordsFn(map)
 }
@@ -223,7 +237,7 @@ GraphCoords <- function(dim=NULL, dist.method=NULL, distFn=function(x)x, layoutF
 kNNCoords <- function(k=4, dim=NULL, distFn=function(x)x, layoutFn=igraph::layout_with_kk) {
   function(map) {
     if(!is.null(map$distf) && map$distf != 2)
-      warn("kNNCoords uses Euclidean neighborhoods, which may not match 'distf' in the map object!")
+      warning("kNNCoords uses Euclidean neighborhoods, which may not match 'distf' in the map object!")
 
     dim <- guessDim(dim, map)
     n <- nrow(map$codes)

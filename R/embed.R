@@ -64,7 +64,7 @@ EmbedSOM <- function(data=NULL, map=NULL, fsom=NULL,
     if(length(emcoords)!=1)
       coords <- emcoords
     else {
-      warn("emcoords parameter will be deprecated, use coordsFn instead.")
+      # warning("emcoords parameter will be deprecated, use coordsFn instead.")
       if(emcoords=='flat') coordsFn <- function(x)x
       if(emcoords=='som') coordsFn <- UMatrixCoords(distFn=function(x)x^emcoords.pow)
       if(emcoords=='mst') coordsFn <- MSTCoords(distFn=function(x)x^emcoords.pow)
