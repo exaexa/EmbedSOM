@@ -10,6 +10,8 @@ RandomMap(data, k, coordsFn)
 \item{data}{Input data matrix, with individual data points in rows}
 
 \item{k}{How many points to sample}
+
+\item{coordsFn}{a function to generate embedding coordinates (default none)}
 }
 \value{
 map object (without the grid, if coordsFn was not specified)

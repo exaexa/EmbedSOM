@@ -47,7 +47,7 @@ SOM(data, xdim = 10, ydim = 10, zdim = NULL, batch = F,
 \item{initf}{Use the given initialization function if init==T
 (default: Initialize_PCA)}
 
-\item{distf}{Distance function (1=manhattan, 2=euclidean, 3=chebyshev)}
+\item{distf}{Distance function (1=manhattan, 2=euclidean, 3=chebyshev, 4=cosine)}
 
 \item{codes}{Cluster centers to start with}
 

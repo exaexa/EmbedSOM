@@ -31,7 +31,7 @@ GQTSOM(data, init.dim = c(3, 3), target_codes = 100, rlen = 10,
 
 \item{importance}{Weights of input data dimensions}
 
-\item{distf}{Distance measure to use in input data space (1=manhattan, 2=euclidean, 3=chebyshev)}
+\item{distf}{Distance measure to use in input data space (1=manhattan, 2=euclidean, 3=chebyshev, 4=cosine)}
 
 \item{nhbr.distf}{Distance measure to use in output space (as in 'distf')}
 
