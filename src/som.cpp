@@ -576,6 +576,8 @@ es_C_SOM(float *points,
 		somf = som<distfs::manh>;
 	else if (*dist == 3)
 		somf = som<distfs::chebyshev>;
+	else if (*dist == 4)
+		somf = som<distfs::cosine>;
 
 	somf(n,
 	     kohos,
@@ -620,6 +622,9 @@ es_C_BatchSOM(int *pnthreads,
 	else if (*dist == 3)
 		somf = threads == 1 ? bsom<distfs::chebyshev, false>
 		                    : bsom<distfs::chebyshev, true>;
+	else if (*dist == 4)
+		somf = threads == 1 ? bsom<distfs::cosine, false>
+		                    : bsom<distfs::cosine, true>;
 
 	somf(threads, n, kohos, dim, rlen, points, koho, nhbrdist, radii);
 }
@@ -669,6 +674,9 @@ es_C_GQTSOM(int *pnthreads,
 	choose_somf(3, distfs::chebyshev, 1, distfs::manh);
 	choose_somf(3, distfs::chebyshev, 2, distfs::sqeucl);
 	choose_somf(3, distfs::chebyshev, 3, distfs::chebyshev);
+	choose_somf(4, distfs::cosine, 1, distfs::manh);
+	choose_somf(4, distfs::cosine, 2, distfs::sqeucl);
+	choose_somf(4, distfs::cosine, 3, distfs::chebyshev);
 
 #undef choose_somf
 
@@ -714,6 +722,9 @@ es_C_mapDataToCodes(int *pnthreads,
 	else if (*dist == 3)
 		mapf = threads == 1 ? mapNNs<distfs::chebyshev, false>
 		                    : mapNNs<distfs::chebyshev, true>;
+	else if (*dist == 4)
+		mapf = threads == 1 ? mapNNs<distfs::cosine, false>
+		                    : mapNNs<distfs::cosine, true>;
 
 	mapf(threads, n, kohos, dim, points, koho, mapping, dists);
 }

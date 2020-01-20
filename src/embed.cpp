@@ -433,12 +433,16 @@ C_embedSOM(int *pnthreads,
 			emf = embedsom<distfs::manh, 2>;
 		if (*pdist == 3)
 			emf = embedsom<distfs::chebyshev, 2>;
+		if (*pdist == 4)
+			emf = embedsom<distfs::cosine, 2>;
 	} else if (embeddim == 3) {
 		emf = embedsom<distfs::sqeucl, 3>;
 		if (*pdist == 1)
 			emf = embedsom<distfs::manh, 3>;
 		if (*pdist == 3)
 			emf = embedsom<distfs::chebyshev, 3>;
+		if (*pdist == 4)
+			emf = embedsom<distfs::cosine, 3>;
 	} else
 		return; // waat.
 

@@ -244,4 +244,88 @@ struct chebyshev
 		o_sqdist = sqdistmax;
 	}
 };
+
+struct cosine
+{
+	inline static float back(float x) { return x; }
+	inline static float comp(const float *p1,
+	                         const float *p2,
+	                         const size_t dim)
+	{
+#ifndef USE_INTRINS
+		float p = 0, a1 = 0, a2 = 0;
+		for (size_t i = 0; i < dim; ++i) {
+			p += p1[i] * p2[i];
+			a1 += sqrf(p1[i]);
+			a2 += sqrf(p2[i]);
+		}
+		a1 *= a2;
+		if (a1 == 0)
+			return 0;
+		return 1 - p / sqrtf(a1);
+#else
+		const float *p1e = p1 + dim, *p1ie = p1e - 3;
+
+		__m128 pv = _mm_setzero_ps(), a1v = _mm_setzero_ps(),
+		       a2v = _mm_setzero_ps();
+		for (; p1 < p1ie; p1 += 4, p2 += 4) {
+			__m128 t1 = _mm_loadu_ps(p1);
+			__m128 t2 = _mm_loadu_ps(p2);
+			pv = _mm_add_ps(pv, _mm_mul_ps(t1, t2));
+			a1v = _mm_add_ps(a1v, _mm_mul_ps(t1, t1));
+			a2v = _mm_add_ps(a2v, _mm_mul_ps(t2, t2));
+		}
+		float p = pv[0] + pv[1] + pv[2] + pv[3];
+		float a1 = a1v[0] + a1v[1] + a1v[2] + a1v[3];
+		float a2 = a2v[0] + a2v[1] + a2v[2] + a2v[3];
+		for (; p1 < p1e; ++p1, ++p2) {
+			p += *p1 * *p2;
+			a1 += *p1 * *p1;
+			a2 += *p2 * *p2;
+		}
+		a1 *= a2;
+		if (a1 == 0)
+			return 0;
+		return 1 - p / sqrtf(a1);
+#endif
+	}
+
+	inline static void proj(const float *la,
+	                        const float *lb,
+	                        const float *p,
+	                        const size_t dim,
+	                        float &o_scalar,
+	                        float &o_sqdist)
+	{
+		/*
+		 * This is a blatant approximation, but it should work well for
+		 * near-neighbor cases that are dominant in EmbedSOM.
+		 */
+
+		float da = 0, db = 0, dp = 0;
+		for (size_t i = 0; i < dim; ++i) {
+			da += sqrf(la[i]);
+			db += sqrf(lb[i]);
+			dp += sqrf(p[i]);
+		}
+		da = sqrtf(da);
+		db = sqrtf(db);
+		dp = sqrtf(dp);
+		if (da > 0)
+			da = 1 / da;
+		if (db > 0)
+			db = 1 / da;
+		if (dp > 0)
+			dp = 1 / da;
+		float scalar = 0, sqdist = 0;
+		for (size_t i = 0; i < dim; ++i) {
+			float tmp = lb[i] * db - la[i] * da;
+			sqdist += tmp * tmp;
+			scalar += tmp * (p[i] * dp - la[i] * da);
+		}
+
+		o_scalar = scalar;
+		o_sqdist = sqdist;
+	}
+};
 };
