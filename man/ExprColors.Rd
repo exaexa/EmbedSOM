@@ -4,16 +4,15 @@
 \alias{ExprColors}
 \title{Generate colors for multi-color marker expression labeling in a single plot}
 \usage{
-ExprColors(exprs, pow = 1, cutoff = 0,
+ExprColors(exprs, base = exp(1), scale = 1, cutoff = 0, pow = NULL,
   col = ClusterPalette(dim(exprs)[2], alpha = alpha),
   nocolor = rgb(0.75, 0.75, 0.75, alpha/2), alpha = 0.5)
 }
 \arguments{
-\item{exprs}{Matrix-like with marker expressions
+\item{exprs}{Matrix-like object with marker expressions
 (extract it manually from your data)}
 
-\item{pow}{Log-power for exponentiating the normalized expressions
-(convertible to a numeric vector of size '1+dim(exprs)[2]')}
+\item{base, scale}{Base(s) and scale(s) for softmax (convertible to numeric vectors of size '1+dim(exprs)[2]')}
 
 \item{cutoff}{Gray level (expressed in sigmas of the sample distribution)}
 
