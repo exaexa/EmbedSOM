@@ -9,7 +9,7 @@ PlotGG(embed, ...)
 \arguments{
 \item{embed}{Embedding data}
 
-\item{...}{Extra arguments passed to PlotData}
+\item{...}{Extra arguments passed to \code{\link[=PlotData]{PlotData()}}}
 }
 \description{
 This creates a ggplot2 object for plotting.

@@ -21,9 +21,9 @@ SOM(data, xdim = 10, ydim = 10, zdim = NULL, batch = F,
 
 \item{ydim}{Hight of the grid}
 
-\item{zdim}{Depth of the grid, causes grid to be 3D}
+\item{zdim}{Depth of the grid, causes the grid to be 3D if set}
 
-\item{batch}{Use batch training (default FALSE chooses online training, more compatible with FlowSOM)}
+\item{batch}{Use batch training (default \code{FALSE} chooses online training, which is more like FlowSOM)}
 
 \item{rlen}{Number of training epochs; or number of times to loop over the training data in online training}
 
@@ -33,14 +33,14 @@ SOM(data, xdim = 10, ydim = 10, zdim = NULL, batch = F,
 
 \item{alphaB}{Start and end learning rate for the second radius (only for online training)}
 
-\item{radiusB}{Start and end radius (only for online training; make sure it's larger than radiusA)}
+\item{radiusB}{Start and end radius (only for online training; make sure it is larger than radiusA)}
 
 \item{negRadius}{easy way to set radiusB as a multiple of default radius
 (use lower value for higher dimensions)}
 
 \item{negAlpha}{the same for alphaB}
 
-\item{epochRadii}{Vector of length 'rlen' with precise epoch radii (only for batch training)}
+\item{epochRadii}{Vector of length \code{rlen} with precise epoch radii (only for batch training)}
 
 \item{init}{Initialize cluster centers in a non-random way}
 
@@ -51,21 +51,20 @@ SOM(data, xdim = 10, ydim = 10, zdim = NULL, batch = F,
 
 \item{codes}{Cluster centers to start with}
 
-\item{importance}{array with numeric values. Parameters will be scaled
-according to importance}
+\item{importance}{array with numeric values. Columns of \code{data} will be scaled according to importance.}
 
-\item{coordsFn}{Function to generate/transform grid coordinates (e.g. 'EmbedSOM::tSNECoords()'). If NULL (default), the grid is the canonical SOM grid.}
+\item{coordsFn}{Function to generate/transform grid coordinates (e.g. \code{\link[=tSNECoords]{tSNECoords()}}). If \code{NULL} (default), the grid is the canonical SOM grid.}
 
-\item{nhbr.method}{Way of computing grid distances, passed as method= to dist() function. Default 'maximum' (square neighborhoods); use 'euclidean' for round neighborhoods.}
+\item{nhbr.method}{Way of computing grid distances, passed as \code{method=} to \code{\link[stats:dist]{stats::dist()}} function. Defaults to \code{maximum} (square neighborhoods); use \code{euclidean} for round neighborhoods.}
 
-\item{noMapping}{If true, do not produce mapping (default F). Useful for online/streaming use.}
+\item{noMapping}{If TRUE, do not compute the mapping (default FALSE). Makes the process quicker by 1 \code{rlen}.}
 
-\item{parallel}{Parallelize batch training (has no effect on online training) by setting appropriate 'threads'. Defaults to FALSE. Use 'batch=T' for fully parallelized version, online training is not parallelizable. Passed to 'MapDataToCodes'.}
+\item{parallel}{Parallelize the batch training by setting appropriate \code{threads}. Defaults to FALSE. Always use \code{batch=TRUE} for fully parallelized version, online training is not parallelizable. Passed to \code{\link[=MapDataToCodes]{MapDataToCodes()}}.}
 
-\item{threads}{Number of threads of batch training (has no effect on online training). Defaults to 0 (chooses maximum available hardware threads) if parallel=TRUE or 1 (single thread) if parallel=FALSE. Passed to 'MapDataToCodes'.}
+\item{threads}{Number of threads of the batch training (has no effect on online training). Defaults to 0 (chooses maximum available hardware threads) if \code{parallel==TRUE} or 1 (single thread) if \code{parallel==FALSE}. Passed to \code{\link[=MapDataToCodes]{MapDataToCodes()}}.}
 }
 \value{
-A map useful for embedding ('EmbedSOM' function) or further analysis.
+A map useful for embedding (\code{\link[=EmbedSOM]{EmbedSOM()}} function) or further analysis, e.g. clustering.
 }
 \description{
 Build a self-organizing map

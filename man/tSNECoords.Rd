@@ -7,14 +7,14 @@
 tSNECoords(dim = NULL, tSNEFn = Rtsne::Rtsne, ...)
 }
 \arguments{
-\item{dim}{Dimension of the result (passed to tSNEFn as 'dims')}
+\item{dim}{Dimension of the result (passed to \code{tSNEFn} as \code{dims})}
 
-\item{tSNEFn}{tSNE function to run (default 'Rtsne::Rtsne')}
+\item{tSNEFn}{tSNE function to run (default \link[Rtsne:Rtsne]{Rtsne::Rtsne})}
 
-\item{...}{passed to 'tSNEFn'}
+\item{...}{passed to \code{tSNEFn}}
 }
 \value{
-a function that transforms the map, usable as 'coordsFn' parameter
+a function that transforms the map, usable as \code{coordsFn} parameter
 }
 \description{
 Add tSNE-based coordinates to a map

@@ -15,6 +15,7 @@ mkdir ${TMPDIR} || exit 1
 git archive --format=tar --prefix="${N}/" "${HEAD}" \
 | tar f - \
 	--delete "${N}/pack_cran.sh" \
+	--delete "${N}/LICENSE" \
 	--delete "${N}/vignettes/.gitignore" \
 	--delete "${N}/src/.clang-format" \
 	--delete "${N}/src/style.sh" \

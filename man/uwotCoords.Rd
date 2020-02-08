@@ -7,14 +7,14 @@
 uwotCoords(dim = NULL, uwotFn = uwot::umap, ...)
 }
 \arguments{
-\item{dim}{Dimension of the result (passed to uwotFn as 'dims')}
+\item{dim}{Dimension of the result (passed to \code{uwotFn} as \code{dims})}
 
-\item{uwotFn}{UMAP function to run (default 'uwot::uwot')}
+\item{uwotFn}{UMAP function to run (default \link[uwot:umap]{uwot::umap})}
 
-\item{...}{passed to 'uwotFn'}
+\item{...}{passed to \code{uwotFn}}
 }
 \value{
-a function that transforms the map, usable as 'coordsFn' parameter
+a function that transforms the map, usable as \code{coordsFn} parameter
 }
 \description{
 Add UMAP-based coordinates to a map, using the 'uwot' package

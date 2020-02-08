@@ -10,17 +10,17 @@ kNNCoords(k = 4, dim = NULL, distFn = function(x) x,
 \arguments{
 \item{k}{Size of the neighborhoods (default 4)}
 
-\item{dim}{Dimension of the result (passed to layoutFn)}
+\item{dim}{Dimension of the result (passed to \code{layoutFn})}
 
 \item{distFn}{Custom transformation function of the distance matrix}
 
-\item{layoutFn}{iGraph-compatible graph layouting function (default 'igraph::layout_with_kk')}
+\item{layoutFn}{iGraph-compatible graph layouting function (default \link[igraph:layout_with_kk]{igraph::layout_with_kk})}
 }
 \value{
-a function that transforms the map, usable as 'coordsFn' parameter
+a function that transforms the map, usable as \code{coordsFn} parameter
 }
 \description{
-Internally, this uses 'FNN::get.knn' to compute the k-neighborhoods. That
-function only supports Euclidean metric, so kNNCoords throws a warning whenever
+Internally, this uses \code{\link[FNN:get.knn]{FNN::get.knn()}} to compute the k-neighborhoods. That
+function only supports Euclidean metric, therefore \code{kNNCoords} throws a warning whenever
 a different metric is used.
 }

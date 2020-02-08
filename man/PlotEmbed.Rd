@@ -15,45 +15,46 @@ PlotEmbed(embed, value = 0, red = 0, green = 0, blue = 0,
   else alpha/2), plotf = PlotDefault, ...)
 }
 \arguments{
-\item{embed}{The embedding from EmbedSOM}
+\item{embed}{The embedding from \code{\link[=EmbedSOM]{EmbedSOM()}}, or generally any 2-column matrix of coordinates}
 
-\item{value}{The column of data to use for plotting the value}
+\item{value}{The column of \code{data} to use for coloring the plotted points}
 
-\item{red, green, blue}{The same for RGB components}
+\item{red, green, blue}{The same, for individual RGB components}
 
 \item{fv, fr, fg, fb}{Functions to transform the values before they are normalized}
 
-\item{powv, powr, powg, powb}{Passed to corresponding 'NormalizeColor' calls as 'pow'}
+\item{powv, powr, powg, powb}{Passed to corresponding \code{\link[=NormalizeColor]{NormalizeColor()}} calls as \code{pow}}
 
-\item{sdsv, sdsr, sdsg, sdsb}{Passed to 'NormalizeColor' as 'sds'}
+\item{sdsv, sdsr, sdsg, sdsb}{Passed to \code{\link[=NormalizeColor]{NormalizeColor()}} as \code{sds}}
 
-\item{clust}{Cluster labels (used as factor)}
+\item{clust}{Cluster labels (used as a factor)}
 
-\item{nbin, maxDens, fdens}{Parameters of density calculation, see PlotData}
+\item{nbin, maxDens, fdens}{Parameters of density calculation, see \code{\link[=PlotData]{PlotData()}}}
 
-\item{limit}{Low/high offset for 'NormalizeColor' (obsolete, now ignored)}
+\item{limit}{Low/high offset for \code{\link[=NormalizeColor]{NormalizeColor()}} (obsolete&ignored, will be removed)}
 
-\item{alpha}{Default alpha value}
+\item{alpha}{Default alpha value of points}
 
 \item{fsom}{FlowSOM object}
 
-\item{data}{Data matrix, taken from fsom parameter by default}
+\item{data}{Data matrix, taken from \code{fsom} parameter by default}
 
-\item{col}{Different coloring, if supplied}
+\item{col}{Overrides the computed point colors with exact supplied colors.}
 
-\item{cluster.colors}{Function to generate cluster colors, default ClusterPalette}
+\item{cluster.colors}{Function to generate cluster colors, default \code{\link[=ClusterPalette]{ClusterPalette()}}}
 
-\item{expression.colors}{Function to generate expression color scale, default ExpressionPalette}
+\item{expression.colors}{Function to generate expression color scale, default \code{\link[=ExpressionPalette]{ExpressionPalette()}}}
 
-\item{na.color}{Color to assign to NA values}
+\item{na.color}{Color to assign to \code{NA} values}
 
-\item{plotf}{Plot function, defaults to slightly decorated 'graphics::plot'}
+\item{plotf}{Plot function, defaults to \code{\link[graphics:plot]{graphics::plot()}} slightly decorated with \code{pch='.', cex=1}}
 
 \item{...}{Extra params passed to the plot function}
 }
 \description{
-Takes the 'embed' object which is the output of EmbedSOM, together with a
-multitude of arguments that override how the plotting is done.
+Convenience plotting function. Takes the \code{embed} matrix which is the output of
+\code{\link[=EmbedSOM]{EmbedSOM()}}, together with a multitude of arguments that set how the plotting
+is done.
 }
 \examples{
 EmbedSOM::PlotEmbed(cbind(rnorm(1e5),rnorm(1e5)))

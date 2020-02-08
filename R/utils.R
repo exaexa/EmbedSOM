@@ -34,7 +34,7 @@ NormalizeColor <- function(data, low=NULL, high=NULL, pow=0, sds=1) {
     warning("Obsolete NormalizeColor parameters low, high will be removed in future release.")
 
   data <- data-mean(data, na.rm=T)
-  sdev <- sd(data, na.rm=T)
+  sdev <- stats::sd(data, na.rm=T)
   if(sdev==0) sdev <- 1
   stats::pnorm(data, sd=sdev/sds)^(2^pow)
 }
@@ -81,12 +81,12 @@ ClusterPalette <- function(n, vcycle=c(1,0.7), scycle=c(0.7,1), alpha=1)
 
 #' Generate colors for multi-color marker expression labeling in a single plot
 #'
-#' @param exprs Matrix-like object with marker expressions
-#'              (extract it manually from your data)
-#' @param base,scale Base(s) and scale(s) for softmax (convertible to numeric vectors of size '1+dim(exprs)[2]')
+#' @param exprs Matrix-like object with marker expressions (extract it manually from your data)
+#' @param base,scale Base(s) and scale(s) for softmax (convertible to numeric vectors of size `1+ncol(exprs)`)
+#' @param pow Obsolete, now renamed to `scale`.
 #' @param cutoff Gray level (expressed in sigmas of the sample distribution)
 #' @param col Colors to use, defaults to colors taken from 'ClusterPalette'
-#' @param nocolor The color to use for sub-gray-level expression
+#' @param nocolor The color to use for sub-gray-level expression, default gray.
 #' @param alpha Default alpha value.
 #' @examples
 #' d <- cbind(rnorm(1e5), rexp(1e5))
@@ -98,16 +98,17 @@ ExprColors <- function(exprs,
                        cutoff=0,
                        pow=NULL,
                        col=ClusterPalette(dim(exprs)[2], alpha=alpha),
-                       nocolor=rgb(0.75, 0.75, 0.75, alpha/2),
+                       nocolor=grDevices::rgb(0.75, 0.75, 0.75, alpha/2),
                        alpha=0.5) {
   # backwards compatibility
   if(!is.null(pow)) scale<-pow
 
-  colM <- col2rgb(alpha=T, c(col, nocolor)) %*%
+  colM <- grDevices::col2rgb(alpha=T, c(col, nocolor)) %*%
     apply(rbind(t(scale(exprs)),cutoff),
           2, function(v) (base^(v*scale))/sum(base^(v*scale)))
 
-  rgb(red  =colM[1,],
+  grDevices::rgb(
+      red  =colM[1,],
       green=colM[2,],
       blue =colM[3,],
       alpha=colM[4,],
@@ -118,7 +119,7 @@ ExprColors <- function(exprs,
 #'
 #' @param x Just the x.
 #' @return The x.
-PlotId <- function(x){x}
+PlotId <- function(x)x
 
 #' Default plot
 #'
@@ -128,26 +129,27 @@ PlotDefault <- function(pch='.', cex=1, ...) graphics::plot(..., pch=pch, cex=ce
 
 #' Helper function for plotting the embedding
 #'
-#' Takes the 'embed' object which is the output of EmbedSOM, together with a
-#' multitude of arguments that override how the plotting is done.
+#' Convenience plotting function. Takes the `embed` matrix which is the output of
+#' [EmbedSOM()], together with a multitude of arguments that set how the plotting
+#' is done.
 #'
-#' @param embed The embedding from EmbedSOM
-#' @param data Data matrix, taken from fsom parameter by default
+#' @param embed The embedding from [EmbedSOM()], or generally any 2-column matrix of coordinates
+#' @param data Data matrix, taken from `fsom` parameter by default
 #' @param fsom FlowSOM object
-#' @param value The column of data to use for plotting the value
-#' @param red,green,blue The same for RGB components
+#' @param value The column of `data` to use for coloring the plotted points
+#' @param red,green,blue The same, for individual RGB components
 #' @param fv,fr,fg,fb Functions to transform the values before they are normalized
-#' @param powv,powr,powg,powb Passed to corresponding 'NormalizeColor' calls as 'pow'
-#' @param sdsv,sdsr,sdsg,sdsb Passed to 'NormalizeColor' as 'sds'
-#' @param nbin,maxDens,fdens Parameters of density calculation, see PlotData
-#' @param limit Low/high offset for 'NormalizeColor' (obsolete, now ignored)
-#' @param clust Cluster labels (used as factor)
-#' @param alpha Default alpha value
-#' @param col Different coloring, if supplied
-#' @param cluster.colors Function to generate cluster colors, default ClusterPalette
-#' @param expression.colors Function to generate expression color scale, default ExpressionPalette
-#' @param plotf Plot function, defaults to slightly decorated 'graphics::plot'
-#' @param na.color Color to assign to NA values
+#' @param powv,powr,powg,powb Passed to corresponding [NormalizeColor()] calls as `pow`
+#' @param sdsv,sdsr,sdsg,sdsb Passed to [NormalizeColor()] as `sds`
+#' @param nbin,maxDens,fdens Parameters of density calculation, see [PlotData()]
+#' @param limit Low/high offset for [NormalizeColor()] (obsolete&ignored, will be removed)
+#' @param clust Cluster labels (used as a factor)
+#' @param alpha Default alpha value of points
+#' @param col Overrides the computed point colors with exact supplied colors.
+#' @param cluster.colors Function to generate cluster colors, default [ClusterPalette()]
+#' @param expression.colors Function to generate expression color scale, default [ExpressionPalette()]
+#' @param plotf Plot function, defaults to [graphics::plot()] slightly decorated with `pch='.', cex=1`
+#' @param na.color Color to assign to `NA` values
 #' @param ... Extra params passed to the plot function
 #' @examples
 #' EmbedSOM::PlotEmbed(cbind(rnorm(1e5),rnorm(1e5)))
@@ -225,7 +227,7 @@ PlotEmbed <- function(embed,
 #'
 #' @param embed,fsom,data,cols The embedding data, columns to select
 #' @param names Column names for output
-#' @param normalize List of columns to normalize using NormalizeColor, default all
+#' @param normalize List of columns to normalize using [NormalizeColor()], default all
 #' @param pow,sds Parameters for the normalization
 #' @param vf Custom value-transforming function
 #' @param density Name of the density column
@@ -294,7 +296,7 @@ PlotData <- function(embed,
 #'
 #'
 #' @param embed Embedding data
-#' @param ... Extra arguments passed to PlotData
+#' @param ... Extra arguments passed to [PlotData()]
 #' @examples
 #' library(EmbedSOM)
 #' library(ggplot2)
@@ -312,7 +314,7 @@ PlotGG <- function(embed, ...) {
 
 #' The ggplot2 scale gradient from ExpressionPalette.
 #'
-#' @param ... Arguments passed to ggplot2::scale_color_gradientn
+#' @param ... Arguments passed to [ggplot2::scale_color_gradientn()]
 #' @examples
 #' library(EmbedSOM)
 #' library(ggplot2)

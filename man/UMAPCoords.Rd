@@ -4,17 +4,15 @@
 \alias{UMAPCoords}
 \title{Add UMAP-based coordinates to a map}
 \usage{
-UMAPCoords(dim = NULL, UMAPFn = function(x, dim) {     cfg <-
-  umap::umap.defaults     cfg$n_components = dim     umap::umap(x,
-  cfg)$layout })
+UMAPCoords(dim = NULL, UMAPFn = NULL)
 }
 \arguments{
-\item{dim}{Dimension of the result (passed to UMAPFn as 'n_components')}
+\item{dim}{Dimension of the result (passed to \code{UMAPFn} as \code{n_components})}
 
-\item{UMAPFn}{UMAP function to run (default 'umap::umap' configured by 'umap::umap.defaults')}
+\item{UMAPFn}{UMAP function to run (default \link[umap:umap]{umap::umap} configured by \link[umap:umap.defaults]{umap::umap.defaults})}
 }
 \value{
-a function that transforms the map, usable as 'coordsFn' parameter
+a function that transforms the map, usable as \code{coordsFn} parameter
 }
 \description{
 Add UMAP-based coordinates to a map

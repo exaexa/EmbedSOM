@@ -13,7 +13,7 @@ PlotData(embed, fsom, data = fsom$data, cols, names, normalize = cols,
 
 \item{names}{Column names for output}
 
-\item{normalize}{List of columns to normalize using NormalizeColor, default all}
+\item{normalize}{List of columns to normalize using \code{\link[=NormalizeColor]{NormalizeColor()}}, default all}
 
 \item{pow, sds}{Parameters for the normalization}
 

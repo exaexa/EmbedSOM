@@ -10,34 +10,34 @@ EmbedSOM(data = NULL, map = NULL, fsom = NULL, smooth = NULL,
   threads = if (parallel) 0 else 1)
 }
 \arguments{
-\item{data}{Data matrix with points that optionally overrides the one from `fsom$data`.}
+\item{data}{Data matrix with points that optionally overrides the one from \code{fsom$data}}
 
-\item{map}{Map object in FlowSOM format, to optionally override `fsom$map`}
+\item{map}{Map object in FlowSOM format, to optionally override \code{fsom$map}}
 
 \item{fsom}{FlowSOM object with a built SOM (used if data or map are missing)}
 
 \item{smooth}{Produce smoother (positive values) or more rough approximation (negative values).}
 
-\item{k}{How many SOM neighbors to take into the whole computation}
+\item{k}{How many neighboring landmarks (e.g. SOM nodes) to take into the whole computation}
 
-\item{adjust}{How much non-local information to remove (parameter a)}
+\item{adjust}{How much non-local information to remove from the approximation}
 
-\item{importance}{Importance of dimensions that was used to train the SOM}
+\item{importance}{Scaling of the landmarks, will be used to scale the incoming data (should be same as used for training the SOM or to select the landmarks)}
 
-\item{coordsFn}{A coordinates-generating function (e.g. 'EmbedSOM::tSNECoords()') that overrides the existing 'map$grid'.}
+\item{coordsFn}{A coordinates-generating function (e.g. \code{\link[=tSNECoords]{tSNECoords()}}) that overrides the existing \code{map$grid}.}
 
-\item{coords}{A matrix of embedding-space coordinates that correspond to 'map$codes' (i.e. the "embedded landmarks"). Overrides 'map$grid' if not NULL.}
+\item{coords}{A matrix of embedding-space coordinates that correspond to \code{map$codes} (i.e. the "embedded landmarks"). Overrides \code{map$grid} if not NULL.}
 
-\item{emcoords}{Provided for backwards compatibility, will be removed. Either a matrix of embedded coordinates (same number of rows as 'map$codes', and either 2 or 3 columns depending on the SOM grid dimension), or one of 'flat' (default behavior), 'som' (adjust the SOM coords according to U-matrix distances), 'mst' (embed to MST-like structure), 'fsom-mst' (embed to MST that should look exactly like that of FlowSOM), 'tsne' (embed using tSNE from package Rtsne), 'umap' (embed using UMAP from package umap) or 'uwot::umap' (embed using UMAP from package uwot)}
+\item{emcoords}{Provided for backwards compatibility, will be removed. Use \code{coords} and \code{coordsFn} instead.}
 
-\item{emcoords.pow}{Provided for backwards compatibility, will be removed. Exaggeration factor (power) of the distances in U-matrix used for some methods of auto-generating emcoords; default 1.}
+\item{emcoords.pow}{Provided for backwards compatibility, will be removed. Use a parametrized \code{coordsFn} instead.}
 
-\item{parallel}{Boolean flag whether the computation should be parallelized (this flag is just a nice name for 'threads' and does not do anything directly -- default FALSE sets threads=1, TRUE sets threads=0)}
+\item{parallel}{Boolean flag whether the computation should be parallelized (this flag is just a nice name for \code{threads} and does not do anything directly -- default FALSE sets threads=1, TRUE sets threads=0)}
 
 \item{threads}{Number of threads used for computation, 0 chooses hardware concurrency, 1 (default) turns off parallelization.}
 }
 \value{
-matrix with 2D or 3D coordinates of the embedded cels, depending on the map
+matrix with 2D or 3D coordinates of the embedded \code{data}, depending on the \code{map}
 }
 \description{
 Process the cells with SOM into a nice embedding

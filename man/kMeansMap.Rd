@@ -13,9 +13,9 @@ kMeansMap(data, k, coordsFn, batch = T, ...)
 
 \item{coordsFn}{a function to generate embedding coordinates (default none)}
 
-\item{batch}{Use batch-SOM training (effectively kMeans, default T)}
+\item{batch}{Use batch-SOM training (effectively kMeans, default TRUE)}
 
-\item{...}{Passed to 'SOM', useful e.g. for 'parallel=T' or 'rlen=5'}
+\item{...}{Passed to \code{\link[=SOM]{SOM()}}, useful e.g. for 'parallel=T' or 'rlen=5'}
 }
 \value{
 map object (without the grid, if coordsFn was not specified)
@@ -23,11 +23,11 @@ map object (without the grid, if coordsFn was not specified)
 \description{
 May give better results than 'RandomMap' on data where random sampling
 is complicated.
-This does not use actual kMeans clustering, but re-uses the batch SOM with
-tiny radius (which is the same as kMeans). In consequence, the speedup of
-SOM function is applied here as well. Additionally, because we don't need
-that amount of clustering precision, parameters 'batch=F, rlen=1' may give
-a satisfactory result very quickly.
+This does not use actual kMeans clustering, but re-uses the batch version of
+\code{\link[=SOM]{SOM()}} with tiny radius (which makes it work the same as kMeans). In
+consequence, the speedup of SOM function is applied here as well. Additionally,
+because we don't need that amount of clustering precision, parameters `batch=F, rlen=1'
+may give a satisfactory result very quickly.
 }
 \examples{
 d <- iris[,1:4]

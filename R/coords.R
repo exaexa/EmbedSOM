@@ -40,7 +40,7 @@ guessDistMethod <- function(dist.method, map) {
 #' @param data Input data matrix, with individual data points in rows
 #' @param k How many points to sample
 #' @param coordsFn a function to generate embedding coordinates (default none)
-#' @return map object (without the grid, if coordsFn was not specified)
+#' @return map object (without the grid, if `coordsFn` was not specified)
 #'
 #' @examples
 #' d <- iris[,1:4]
@@ -61,17 +61,17 @@ RandomMap <- function(data, k, coordsFn) {
 #'
 #' May give better results than 'RandomMap' on data where random sampling
 #' is complicated.
-#' This does not use actual kMeans clustering, but re-uses the batch SOM with
-#' tiny radius (which is the same as kMeans). In consequence, the speedup of
-#' SOM function is applied here as well. Additionally, because we don't need
-#' that amount of clustering precision, parameters 'batch=F, rlen=1' may give
-#' a satisfactory result very quickly.
+#' This does not use actual kMeans clustering, but re-uses the batch version of
+#' [SOM()] with tiny radius (which makes it work the same as kMeans). In
+#' consequence, the speedup of SOM function is applied here as well. Additionally,
+#' because we don't need that amount of clustering precision, parameters `batch=F, rlen=1'
+#' may give a satisfactory result very quickly.
 #'
 #' @param data Input data matrix, with individual data points in rows
 #' @param k How many points to sample
 #' @param coordsFn a function to generate embedding coordinates (default none)
-#' @param batch Use batch-SOM training (effectively kMeans, default T)
-#' @param ... Passed to 'SOM', useful e.g. for 'parallel=T' or 'rlen=5'
+#' @param batch Use batch-SOM training (effectively kMeans, default TRUE)
+#' @param ... Passed to [SOM()], useful e.g. for 'parallel=T' or 'rlen=5'
 #' @return map object (without the grid, if coordsFn was not specified)
 #'
 #' @examples
@@ -98,10 +98,10 @@ kMeansMap <- function(data, k, coordsFn, batch=T, ...) {
 
 #' Add tSNE-based coordinates to a map
 #'
-#' @param dim Dimension of the result (passed to tSNEFn as 'dims')
-#' @param tSNEFn tSNE function to run (default 'Rtsne::Rtsne')
-#' @param ... passed to 'tSNEFn'
-#' @return a function that transforms the map, usable as 'coordsFn' parameter
+#' @param dim Dimension of the result (passed to `tSNEFn` as `dims`)
+#' @param tSNEFn tSNE function to run (default [Rtsne::Rtsne])
+#' @param ... passed to `tSNEFn`
+#' @return a function that transforms the map, usable as `coordsFn` parameter
 #' @export
 tSNECoords <- function(dim=NULL, tSNEFn=Rtsne::Rtsne, ...) {
   function(map) {
@@ -113,16 +113,16 @@ tSNECoords <- function(dim=NULL, tSNEFn=Rtsne::Rtsne, ...) {
 
 #' Add UMAP-based coordinates to a map
 #'
-#' @param dim Dimension of the result (passed to UMAPFn as 'n_components')
-#' @param UMAPFn UMAP function to run (default 'umap::umap' configured by 'umap::umap.defaults')
-#' @return a function that transforms the map, usable as 'coordsFn' parameter
+#' @param dim Dimension of the result (passed to `UMAPFn` as `n_components`)
+#' @param UMAPFn UMAP function to run (default [umap::umap] configured by [umap::umap.defaults])
+#' @return a function that transforms the map, usable as `coordsFn` parameter
 #' @export
-UMAPCoords <- function(dim=NULL,
-                       UMAPFn=function(x, dim){
-                         cfg <- umap::umap.defaults
-                         cfg$n_components = dim
-                         umap::umap(x, cfg)$layout
-                       }) {
+UMAPCoords <- function(dim=NULL, UMAPFn=NULL) {
+  if(is.null(UMAPFn)) UMAPFn <- function(x, dim) {
+    cfg <- umap::umap.defaults
+    cfg$n_components = dim
+    umap::umap(x, cfg)$layout
+  }
   function(map) {
     dim <- guessDim(dim, map)
     map$grid <- UMAPFn(map$codes, dim)
@@ -132,10 +132,10 @@ UMAPCoords <- function(dim=NULL,
 
 #' Add UMAP-based coordinates to a map, using the 'uwot' package
 #'
-#' @param dim Dimension of the result (passed to uwotFn as 'dims')
-#' @param uwotFn UMAP function to run (default 'uwot::uwot')
-#' @param ... passed to 'uwotFn'
-#' @return a function that transforms the map, usable as 'coordsFn' parameter
+#' @param dim Dimension of the result (passed to `uwotFn` as `dims`)
+#' @param uwotFn UMAP function to run (default [uwot::umap])
+#' @param ... passed to `uwotFn`
+#' @return a function that transforms the map, usable as `coordsFn` parameter
 #' @export
 uwotCoords <- function(dim=NULL, uwotFn=uwot::umap, ...) {
   function(map) {
@@ -147,12 +147,12 @@ uwotCoords <- function(dim=NULL, uwotFn=uwot::umap, ...) {
 
 #' Add U-Matrix-optimized embedding coordinates to the map
 #'
-#' The map must already contain a SOM grid with corresponding 'xdim','ydim' (possibly 'zdim')
+#' The map must already contain a SOM grid with corresponding `xdim`,`ydim` (possibly `zdim`)
 #'
-#' @param dim Dimension of the result (passed to layoutFn)
-#' @param dist.method The method to compute distances, passed to 'stats::dist' as parameter 'method'
+#' @param dim Dimension of the result (passed to `layoutFn`)
+#' @param dist.method The method to compute distances, passed to [stats::dist()] as parameter `method`
 #' @param distFn Custom transformation function of the distance matrix
-#' @param layoutFn iGraph-compatible graph layouting function (default 'igraph::layout_with_kk')
+#' @param layoutFn iGraph-compatible graph layouting function (default [igraph::layout_with_kk])
 #' @return a function that transforms the map, usable as 'coordsFn' parameter
 #' @export
 UMatrixCoords <- function(dim=NULL, dist.method=NULL, distFn=function(x)x, layoutFn=igraph::layout_with_kk) {
@@ -179,10 +179,10 @@ UMatrixCoords <- function(dim=NULL, dist.method=NULL, distFn=function(x)x, layou
 #' Add MST-style embedding coordinates to the map
 #'
 #' @param dim Dimension of the result (passed to layoutFn)
-#' @param dist.method The method to compute distances, passed to 'stats::dist' as parameter 'method'
+#' @param dist.method The method to compute distances, passed to [stats::dist()] as parameter `method`
 #' @param distFn Custom transformation function of the distance matrix
-#' @param layoutFn iGraph-compatible graph layouting function (default 'igraph::layout_with_kk')
-#' @return a function that transforms the map, usable as 'coordsFn' parameter
+#' @param layoutFn iGraph-compatible graph layouting function (default [igraph::layout_with_kk()])
+#' @return a function that transforms the map, usable as `coordsFn` parameter
 #' @export
 MSTCoords <- function(dim=NULL, dist.method=NULL, distFn=function(x)x, layoutFn=igraph::layout_with_kk) {
   function(map) {
@@ -204,11 +204,11 @@ MSTCoords <- function(dim=NULL, dist.method=NULL, distFn=function(x)x, layoutFn=
 #' problems. It is therefore useful to transform the distances for avoiding that
 #' (e.g. by exponentiating them slightly).
 #'
-#' @param dim Dimension of the result (passed to layoutFn)
-#' @param dist.method The method to compute distances, passed to 'stats::dist' as parameter 'method'
+#' @param dim Dimension of the result (passed to `layoutFn`)
+#' @param dist.method The method to compute distances, passed to [stats::dist()] as parameter `method`
 #' @param distFn Custom transformation function of the distance matrix
-#' @param layoutFn iGraph-compatible graph layouting function (default 'igraph::layout_with_kk')
-#' @return a function that transforms the map, usable as 'coordsFn' parameter
+#' @param layoutFn iGraph-compatible graph layouting function (default [igraph::layout_with_kk])
+#' @return a function that transforms the map, usable as `coordsFn` parameter
 #' @export
 GraphCoords <- function(dim=NULL, dist.method=NULL, distFn=function(x)x, layoutFn=igraph::layout_with_kk) {
   function(map) {
@@ -224,15 +224,15 @@ GraphCoords <- function(dim=NULL, dist.method=NULL, distFn=function(x)x, layoutF
 
 #' Add KNN-topology-based embedding coordinates to the map
 #'
-#' Internally, this uses 'FNN::get.knn' to compute the k-neighborhoods. That
-#' function only supports Euclidean metric, so kNNCoords throws a warning whenever
+#' Internally, this uses [FNN::get.knn()] to compute the k-neighborhoods. That
+#' function only supports Euclidean metric, therefore `kNNCoords` throws a warning whenever
 #' a different metric is used.
 #'
 #' @param k Size of the neighborhoods (default 4)
-#' @param dim Dimension of the result (passed to layoutFn)
+#' @param dim Dimension of the result (passed to `layoutFn`)
 #' @param distFn Custom transformation function of the distance matrix
-#' @param layoutFn iGraph-compatible graph layouting function (default 'igraph::layout_with_kk')
-#' @return a function that transforms the map, usable as 'coordsFn' parameter
+#' @param layoutFn iGraph-compatible graph layouting function (default [igraph::layout_with_kk])
+#' @return a function that transforms the map, usable as `coordsFn` parameter
 #' @export
 kNNCoords <- function(k=4, dim=NULL, distFn=function(x)x, layoutFn=igraph::layout_with_kk) {
   function(map) {
@@ -245,7 +245,7 @@ kNNCoords <- function(k=4, dim=NULL, distFn=function(x)x, layoutFn=igraph::layou
     adj <- matrix(0, n, n)
     adj[kns[,2]+n*(kns[,1]-1)] <- 1
     adj[kns[,1]+n*(kns[,2]-1)] <- 1
-    adj <- adj*(distFn(as.matrix(dist(map$codes, method='euclidean'))))
+    adj <- adj*(distFn(as.matrix(stats::dist(map$codes, method='euclidean'))))
 
     map$grid <- layoutFn(dim=dim,
       igraph::graph_from_adjacency_matrix(adj, mode='undirected', weighted=T))

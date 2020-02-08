@@ -17,20 +17,20 @@
 
 #' Process the cells with SOM into a nice embedding
 #' 
-#' @param data Data matrix with points that optionally overrides the one from `fsom$data`.
+#' @param data Data matrix with points that optionally overrides the one from `fsom$data`
 #' @param map Map object in FlowSOM format, to optionally override `fsom$map`
 #' @param fsom FlowSOM object with a built SOM (used if data or map are missing)
 #' @param smooth Produce smoother (positive values) or more rough approximation (negative values).
-#' @param k How many SOM neighbors to take into the whole computation
-#' @param adjust How much non-local information to remove (parameter a)
-#' @param importance Importance of dimensions that was used to train the SOM
-#' @param coords A matrix of embedding-space coordinates that correspond to 'map$codes' (i.e. the "embedded landmarks"). Overrides 'map$grid' if not NULL.
-#' @param coordsFn A coordinates-generating function (e.g. 'EmbedSOM::tSNECoords()') that overrides the existing 'map$grid'.
-#' @param emcoords Provided for backwards compatibility, will be removed. Either a matrix of embedded coordinates (same number of rows as 'map$codes', and either 2 or 3 columns depending on the SOM grid dimension), or one of 'flat' (default behavior), 'som' (adjust the SOM coords according to U-matrix distances), 'mst' (embed to MST-like structure), 'fsom-mst' (embed to MST that should look exactly like that of FlowSOM), 'tsne' (embed using tSNE from package Rtsne), 'umap' (embed using UMAP from package umap) or 'uwot::umap' (embed using UMAP from package uwot)
-#' @param emcoords.pow Provided for backwards compatibility, will be removed. Exaggeration factor (power) of the distances in U-matrix used for some methods of auto-generating emcoords; default 1.
+#' @param k How many neighboring landmarks (e.g. SOM nodes) to take into the whole computation
+#' @param adjust How much non-local information to remove from the approximation
+#' @param importance Scaling of the landmarks, will be used to scale the incoming data (should be same as used for training the SOM or to select the landmarks)
+#' @param coords A matrix of embedding-space coordinates that correspond to `map$codes` (i.e. the "embedded landmarks"). Overrides `map$grid` if not NULL.
+#' @param coordsFn A coordinates-generating function (e.g. [tSNECoords()]) that overrides the existing `map$grid`.
+#' @param emcoords Provided for backwards compatibility, will be removed. Use `coords` and `coordsFn` instead.
+#' @param emcoords.pow Provided for backwards compatibility, will be removed. Use a parametrized `coordsFn` instead.
 #' @param threads Number of threads used for computation, 0 chooses hardware concurrency, 1 (default) turns off parallelization.
-#' @param parallel Boolean flag whether the computation should be parallelized (this flag is just a nice name for 'threads' and does not do anything directly -- default FALSE sets threads=1, TRUE sets threads=0)
-#' @return matrix with 2D or 3D coordinates of the embedded cels, depending on the map
+#' @param parallel Boolean flag whether the computation should be parallelized (this flag is just a nice name for `threads` and does not do anything directly -- default FALSE sets threads=1, TRUE sets threads=0)
+#' @return matrix with 2D or 3D coordinates of the embedded `data`, depending on the `map`
 #'
 #' @examples
 #' d <- cbind(rnorm(10000), 3*runif(10000), rexp(10000))

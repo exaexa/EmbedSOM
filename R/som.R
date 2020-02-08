@@ -24,30 +24,29 @@
 #' @param data  Matrix containing the training data
 #' @param xdim  Width of the grid
 #' @param ydim  Hight of the grid
-#' @param zdim  Depth of the grid, causes grid to be 3D
-#' @param batch Use batch training (default FALSE chooses online training, more compatible with FlowSOM)
+#' @param zdim  Depth of the grid, causes the grid to be 3D if set
+#' @param batch Use batch training (default `FALSE` chooses online training, which is more like FlowSOM)
 #' @param rlen  Number of training epochs; or number of times to loop over the training data in online training
 #' @param alphaA Start and end learning rate for online learning (only for online training)
 #' @param alphaB Start and end learning rate for the second radius (only for online training)
 #' @param radiusA Start and end radius
-#' @param radiusB Start and end radius (only for online training; make sure it's larger than radiusA)
+#' @param radiusB Start and end radius (only for online training; make sure it is larger than radiusA)
 #' @param negRadius easy way to set radiusB as a multiple of default radius
 #'                  (use lower value for higher dimensions)
 #' @param negAlpha the same for alphaB
-#' @param epochRadii Vector of length 'rlen' with precise epoch radii (only for batch training)
+#' @param epochRadii Vector of length `rlen` with precise epoch radii (only for batch training)
 #' @param init  Initialize cluster centers in a non-random way
 #' @param initf Use the given initialization function if init==T
 #'              (default: Initialize_PCA)
 #' @param distf Distance function (1=manhattan, 2=euclidean, 3=chebyshev, 4=cosine)
 #' @param codes Cluster centers to start with
-#' @param importance array with numeric values. Parameters will be scaled
-#'                   according to importance
-#' @param coordsFn Function to generate/transform grid coordinates (e.g. 'EmbedSOM::tSNECoords()'). If NULL (default), the grid is the canonical SOM grid.
-#' @param nhbr.method Way of computing grid distances, passed as method= to dist() function. Default 'maximum' (square neighborhoods); use 'euclidean' for round neighborhoods.
-#' @param noMapping If true, do not produce mapping (default F). Useful for online/streaming use.
-#' @param threads Number of threads of batch training (has no effect on online training). Defaults to 0 (chooses maximum available hardware threads) if parallel=TRUE or 1 (single thread) if parallel=FALSE. Passed to 'MapDataToCodes'.
-#' @param parallel Parallelize batch training (has no effect on online training) by setting appropriate 'threads'. Defaults to FALSE. Use 'batch=T' for fully parallelized version, online training is not parallelizable. Passed to 'MapDataToCodes'.
-#' @return A map useful for embedding ('EmbedSOM' function) or further analysis.
+#' @param importance array with numeric values. Columns of `data` will be scaled according to importance.
+#' @param coordsFn Function to generate/transform grid coordinates (e.g. [tSNECoords()]). If `NULL` (default), the grid is the canonical SOM grid.
+#' @param nhbr.method Way of computing grid distances, passed as `method=` to [stats::dist()] function. Defaults to `maximum` (square neighborhoods); use `euclidean` for round neighborhoods.
+#' @param noMapping If TRUE, do not compute the mapping (default FALSE). Makes the process quicker by 1 `rlen`.
+#' @param threads Number of threads of the batch training (has no effect on online training). Defaults to 0 (chooses maximum available hardware threads) if `parallel==TRUE` or 1 (single thread) if `parallel==FALSE`. Passed to [MapDataToCodes()].
+#' @param parallel Parallelize the batch training by setting appropriate `threads`. Defaults to FALSE. Always use `batch=TRUE` for fully parallelized version, online training is not parallelizable. Passed to [MapDataToCodes()].
+#' @return A map useful for embedding ([EmbedSOM()] function) or further analysis, e.g. clustering.
 #'
 #' @seealso FlowSOM::SOM
 #'
@@ -162,20 +161,20 @@ SOM <- function (data, xdim=10, ydim=10, zdim=NULL, batch=F, rlen=10,
 #' Train a Growing Quadtree Self-Organizing Map
 #'
 #' @param data Input data matrix
-#' @param init.dim Initial size of the SOM, default c(3,3)
-#' @param target_codes Make the SOM grow linearly to at most this amount of nodes (default 100)
+#' @param init.dim Initial size of the SOM, default `c(3,3)`
+#' @param target_codes Make the SOM grow linearly to at most this amount of nodes (default `100`)
 #' @param rlen Number of training iterations
-#' @param radius Start and end training radius, as in 'SOM'
-#' @param epochRadii Precise radii for each epoch (must be of length 'rlen')
-#' @param coords Tree coordinates of the initial SOM nodes.
+#' @param radius Start and end training radius, as in [SOM()]
+#' @param epochRadii Precise radii for each epoch (must be of length `rlen`)
+#' @param coords Quadtree coordinates of the initial SOM nodes.
 #' @param codes Initial codebook
-#' @param coordsFn Function to generate/transform grid coordinates (e.g. 'EmbedSOM::tSNECoords()'). If NULL (default), the grid is the grid generated by GQTSOM.
+#' @param coordsFn Function to generate/transform grid coordinates (e.g. [tSNECoords()]). If `NULL` (default), the grid is the grid is the 2D coordinates of GQTSOM map.
 #' @param importance Weights of input data dimensions
 #' @param distf Distance measure to use in input data space (1=manhattan, 2=euclidean, 3=chebyshev, 4=cosine)
-#' @param nhbr.distf Distance measure to use in output space (as in 'distf')
-#' @param noMapping If TRUE, do not compute the assignment of input data to SOM nodes
-#' @param threads Number of threads to use for training. Defaults to 0 (chooses maximum available hardware threads) if parallel=TRUE or 1 (single thread) if parallel=FALSE.
-#' @param parallel Parallelize the training by setting appropriate 'threads'. Defaults to FALSE.
+#' @param nhbr.distf Distance measure to use in output space (as in `distf`)
+#' @param noMapping If `TRUE`, do not compute the assignment of input data to SOM nodes
+#' @param threads Number of threads to use for training. Defaults to 0 (chooses maximum available hardware threads) if `parallel=TRUE` or 1 (single thread) if `parallel=FALSE`.
+#' @param parallel Parallelize the training by setting appropriate `threads`. Defaults to `FALSE`.
 #' @export
 GQTSOM <- function(data, init.dim=c(3,3), target_codes=100, rlen=10,
   radius=c(sqrt(sum(init.dim^2)),0.5), epochRadii=seq(radius[1], radius[2], length.out=rlen),
@@ -275,10 +274,8 @@ GQTSOM <- function(data, init.dim=c(3,3), target_codes=100, rlen=10,
 #'
 #' @param codes matrix with nodes of the SOM
 #' @param data datapoints to assign
-#' @param distf Distance function (1=manhattan, 2=euclidean, 3=chebyshev,
-#'              4=cosine)
-#' @param threads Number of threads used for computation, 0 chooses hardware concurrency, 1 (default) turns off parallelization.
-#' @param parallel Boolean flag whether the computation should be parallelized (this flag is just a nice name for 'threads' and does not do anything directly -- default FALSE sets threads=1, TRUE sets threads=0)
+#' @param distf Distance function (1=manhattan, 2=euclidean, 3=chebyshev, 4=cosine)
+#' @param threads,parallel Use parallel computation (see [SOM()])
 #' @return array with nearest node id for each datapoint
 #'
 #' @export

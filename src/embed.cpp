@@ -237,9 +237,9 @@ solve_lin_eq(const float *mtx, float *embedding)
 template<class distf>
 static void
 sorted_dists_to_scores(vector<dist_id> &dists,
-                       size_t topn,
-                       size_t topnn,
-                       float boost)
+                       const size_t topn,
+                       const size_t topnn,
+                       const float boost)
 {
 	// compute the distance distribution for the scores
 	float mean = 0, sd = 0, wsum = 0;

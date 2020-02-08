@@ -14,7 +14,7 @@ RandomMap(data, k, coordsFn)
 \item{coordsFn}{a function to generate embedding coordinates (default none)}
 }
 \value{
-map object (without the grid, if coordsFn was not specified)
+map object (without the grid, if \code{coordsFn} was not specified)
 }
 \description{
 Create a map by randomly selecting points

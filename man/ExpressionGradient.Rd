@@ -7,7 +7,7 @@
 ExpressionGradient(...)
 }
 \arguments{
-\item{...}{Arguments passed to ggplot2::scale_color_gradientn}
+\item{...}{Arguments passed to \code{\link[ggplot2:scale_color_gradientn]{ggplot2::scale_color_gradientn()}}}
 }
 \description{
 The ggplot2 scale gradient from ExpressionPalette.

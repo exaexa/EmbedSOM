@@ -6,19 +6,20 @@
 \usage{
 ExprColors(exprs, base = exp(1), scale = 1, cutoff = 0, pow = NULL,
   col = ClusterPalette(dim(exprs)[2], alpha = alpha),
-  nocolor = rgb(0.75, 0.75, 0.75, alpha/2), alpha = 0.5)
+  nocolor = grDevices::rgb(0.75, 0.75, 0.75, alpha/2), alpha = 0.5)
 }
 \arguments{
-\item{exprs}{Matrix-like object with marker expressions
-(extract it manually from your data)}
+\item{exprs}{Matrix-like object with marker expressions (extract it manually from your data)}
 
-\item{base, scale}{Base(s) and scale(s) for softmax (convertible to numeric vectors of size '1+dim(exprs)[2]')}
+\item{base, scale}{Base(s) and scale(s) for softmax (convertible to numeric vectors of size \code{1+ncol(exprs)})}
 
 \item{cutoff}{Gray level (expressed in sigmas of the sample distribution)}
 
+\item{pow}{Obsolete, now renamed to \code{scale}.}
+
 \item{col}{Colors to use, defaults to colors taken from 'ClusterPalette'}
 
-\item{nocolor}{The color to use for sub-gray-level expression}
+\item{nocolor}{The color to use for sub-gray-level expression, default gray.}
 
 \item{alpha}{Default alpha value.}
 }

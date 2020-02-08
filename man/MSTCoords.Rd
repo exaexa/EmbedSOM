@@ -10,14 +10,14 @@ MSTCoords(dim = NULL, dist.method = NULL, distFn = function(x) x,
 \arguments{
 \item{dim}{Dimension of the result (passed to layoutFn)}
 
-\item{dist.method}{The method to compute distances, passed to 'stats::dist' as parameter 'method'}
+\item{dist.method}{The method to compute distances, passed to \code{\link[stats:dist]{stats::dist()}} as parameter \code{method}}
 
 \item{distFn}{Custom transformation function of the distance matrix}
 
-\item{layoutFn}{iGraph-compatible graph layouting function (default 'igraph::layout_with_kk')}
+\item{layoutFn}{iGraph-compatible graph layouting function (default \code{\link[igraph:layout_with_kk]{igraph::layout_with_kk()}})}
 }
 \value{
-a function that transforms the map, usable as 'coordsFn' parameter
+a function that transforms the map, usable as \code{coordsFn} parameter
 }
 \description{
 Add MST-style embedding coordinates to the map
