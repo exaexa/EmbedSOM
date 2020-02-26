@@ -139,7 +139,7 @@ rgl::points3d(x=e[,1], y=e[,2], z=e[,3])
 
 You may use parallelized versions of the algorithms. Several functions (`SOM`, `GQTSOM`, `EmbedSOM`) support setting `parallel=T`, which enables parallel processing; you may fine-tune the number of used CPUs by setting e.g. `threads=5`.
 
-For SOM training, you need to explicitly switch to the parallelizable batch version, using `batch=F`.
+For SOM training, you need to explicitly switch to the parallelizable batch version, using `batch=T`.
 
 #### How to activate the SIMD support? (i.e. how to get even more speed?)
 
