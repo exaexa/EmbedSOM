@@ -53,7 +53,7 @@
 #' @useDynLib EmbedSOM, .registration = TRUE
 #' @export
 
-SOM <- function (data, xdim=20, ydim=20, zdim=NULL, batch=F, rlen=10,
+SOM <- function (data, xdim=10, ydim=10, zdim=NULL, batch=F, rlen=10,
     alphaA=c(0.05, 0.01), radiusA=stats::quantile(nhbrdist, 0.67) * c(1, 0),
     alphaB=alphaA*c(-negAlpha,-0.1*negAlpha), radiusB = negRadius*radiusA,
     negRadius=1.33, negAlpha=0.1,
