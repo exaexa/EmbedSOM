@@ -1,6 +1,9 @@
 
 # EmbedSOM
 
+[![CRAN status](https://www.r-pkg.org/badges/version/EmbedSOM)](https://cran.r-project.org/package=EmbedSOM)
+[![CRAN downloads](https://cranlogs.r-pkg.org/badges/EmbedSOM)](https://cran.r-project.org/package=EmbedSOM)
+
 Fast embedding and visualization of multidimensional datasets, originally intended for flow/mass cytometry data. Compatible with FlowSOM (https://github.com/SofieVG/FlowSOM).
 
 You may read more about EmbedSOM in the research paper here:
