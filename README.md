@@ -30,15 +30,18 @@ e <- EmbedSOM::EmbedSOM(d, map) # compute 2D coordinates of points
 EmbedSOM::PlotEmbed(e) # plot the result with density
 ```
 
-## EmbedSOM parameters
-
-- `smooth`: Factor that affects how much difference between close and far nodes to create in neighborhood approximation. Increase this to produce "smoother" but possibly more convoluted embedding. (This functionality was originally done by the `n` parameter which selected the width of Gaussian for estimating the scores. The results were rounder but produced more artifacts and poor separation; it was replaced by `boost` parameter temporarily which did the same thing in a more complicated way.) Default value `0` is adjusted to be good for most datasets; lower values (`-1`, `-2`,...) produce sharper embeddings with less focus on projection and possibly more SOM-related artifacts. Higher values (`1`,`2`,...) produce smoother embeddings that better explains the large-scale structure of data, but some (possibly insignificant) small-scale details may get smoothed out. Sensible values are between `-10` and `10`.
-- `k`: how many nearest SOM vertices to take into account at all (information from the `k+1`-th nearest SOM vertex is discarded). Performance depends quadratically on `k`. Increase to produce a more precise and smooth embedding. Setting between 10 and 50 is usually a good choice.
-- `adjust`: Negative power factor for reducing the effect of non-local relevance measure on the outcome. Use `0` for plain projection; values above `1` usually push points closer to respective SOM vertex positions.
+There are some parameters that affect speed, precision and shape of the embedding. Use `?EmbedSOM::EmbedSOM` to explore them in the documentation.
 
 ## HOW-TOs
 
-#### How to save an embedding to FCS file?
+To get started quickly, you can have a look at the vignettes:
+
+- [Basic embedding on a toy dataset](https://bioinfo.uochb.cas.cz/embedsom/vignettes/basic.html)
+- [Visualization of single-cell cytometry data from A FCS file](https://bioinfo.uochb.cas.cz/embedsom/vignettes/landmarks.html)
+- [Advanced visualization of cytometry data with pseudotime](https://bioinfo.uochb.cas.cz/embedsom/vignettes/time.html)
+- [Embedding 3D animal skeleton pointclouds to 2D](https://bioinfo.uochb.cas.cz/embedsom/vignettes/bones.html)
+
+#### How to save an embedding to an FCS file?
 
 Use `flowCore` functionality to add any information to a FCS. The following template saves the scaled FlowSOM object data as-is, together with the embedding:
 
@@ -135,7 +138,7 @@ rgl::points3d(x=e[,1], y=e[,2], z=e[,3])
 
 You may use parallelized versions of the algorithms. Several functions (`SOM`, `GQTSOM`, `EmbedSOM`) support setting `parallel=T`, which enables parallel processing; you may fine-tune the number of used CPUs by setting e.g. `threads=5`.
 
-For SOM training, you need to explicitly switch to the parallelizable batch version, using `batch=T`.
+For SOM training, you need to explicitly switch to the parallelizable batch version, using `batch=T, parallel=T`.
 
 #### How to activate the SIMD support? (i.e. how to get even more speed?)
 
