@@ -563,11 +563,11 @@ es_C_SOM(float *points,
          float *radiiA,
          float *alphasB,
          float *radiiB,
-         Sint *pn,
-         Sint *pdim,
-         Sint *pkohos,
-         Sint *prlen,
-         Sint *dist)
+         int *pn,
+         int *pdim,
+         int *pkohos,
+         int *prlen,
+         int *dist)
 {
 	size_t n = *pn, dim = *pdim, kohos = *pkohos, rlen = *prlen;
 
@@ -598,11 +598,11 @@ es_C_BatchSOM(int *pnthreads,
               float *koho,
               float *nhbrdist,
               float *radii,
-              Sint *pn,
-              Sint *pdim,
-              Sint *pkohos,
-              Sint *prlen,
-              Sint *dist)
+              int *pn,
+              int *pdim,
+              int *pkohos,
+              int *prlen,
+              int *dist)
 {
 
 	size_t n = *pn, dim = *pdim, kohos = *pkohos, rlen = *prlen;

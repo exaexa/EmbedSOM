@@ -8,11 +8,11 @@ es_C_SOM(float *data,
          float *radiiA,
          float *alphasB,
          float *radiiB,
-         Sint *pn,
-         Sint *pdim,
-         Sint *pncodes,
-         Sint *prlen,
-         Sint *dist);
+         int *pn,
+         int *pdim,
+         int *pncodes,
+         int *prlen,
+         int *dist);
 
 extern "C" void
 es_C_BatchSOM(int *pnthreads,
@@ -20,11 +20,11 @@ es_C_BatchSOM(int *pnthreads,
               float *codes,
               float *nhbrdist,
               float *radii,
-              Sint *pn,
-              Sint *pdim,
-              Sint *pncodes,
-              Sint *prlen,
-              Sint *dist);
+              int *pn,
+              int *pdim,
+              int *pncodes,
+              int *prlen,
+              int *dist);
 
 extern "C" void
 es_C_GQTSOM(int *pnthreads,
