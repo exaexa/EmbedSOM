@@ -31,7 +31,6 @@ Description: Provides a smooth mapping of multidimensional points into
     with 'FlowSOM' and flow-cytometry use-cases. See Kratochvil et al. (2019)
     <doi:10.12688/f1000research.21642.1>.
 License: GPL (>= 3)
-LazyData: true
 URL: https://bioinfo.uochb.cas.cz/embedsom
 Encoding: UTF-8
 RoxygenNote: 7.1.1
