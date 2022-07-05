@@ -4,15 +4,39 @@
 \alias{PlotEmbed}
 \title{Helper function for plotting the embedding}
 \usage{
-PlotEmbed(embed, value = 0, red = 0, green = 0, blue = 0,
-  fr = PlotId, fg = PlotId, fb = PlotId, fv = PlotId, powr = 0,
-  powg = 0, powb = 0, powv = 0, sdsr = 1, sdsg = 1, sdsb = 1,
-  sdsv = 1, clust = NULL, nbin = 256, maxDens = NULL,
-  fdens = sqrt, limit = NULL, alpha = NULL, fsom, data, col,
+PlotEmbed(
+  embed,
+  value = 0,
+  red = 0,
+  green = 0,
+  blue = 0,
+  fr = PlotId,
+  fg = PlotId,
+  fb = PlotId,
+  fv = PlotId,
+  powr = 0,
+  powg = 0,
+  powb = 0,
+  powv = 0,
+  sdsr = 1,
+  sdsg = 1,
+  sdsb = 1,
+  sdsv = 1,
+  clust = NULL,
+  nbin = 256,
+  maxDens = NULL,
+  fdens = sqrt,
+  limit = NULL,
+  alpha = NULL,
+  fsom,
+  data,
+  col,
   cluster.colors = ClusterPalette,
   expression.colors = ExpressionPalette,
-  na.color = grDevices::rgb(0.75, 0.75, 0.75, if (is.null(alpha)) 0.5
-  else alpha/2), plotf = PlotDefault, ...)
+  na.color = grDevices::rgb(0.75, 0.75, 0.75, if (is.null(alpha)) 0.5 else alpha/2),
+  plotf = PlotDefault,
+  ...
+)
 }
 \arguments{
 \item{embed}{The embedding from \code{\link[=EmbedSOM]{EmbedSOM()}}, or generally any 2-column matrix of coordinates}
@@ -47,7 +71,7 @@ PlotEmbed(embed, value = 0, red = 0, green = 0, blue = 0,
 
 \item{na.color}{Color to assign to \code{NA} values}
 
-\item{plotf}{Plot function, defaults to \code{\link[graphics:plot]{graphics::plot()}} slightly decorated with \code{pch='.', cex=1}}
+\item{plotf}{Plot function, defaults to \code{\link[graphics:plot.default]{graphics::plot()}} slightly decorated with \verb{pch='.', cex=1}}
 
 \item{...}{Extra params passed to the plot function}
 }

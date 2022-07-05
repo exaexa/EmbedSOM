@@ -4,8 +4,12 @@
 \alias{UMatrixCoords}
 \title{Add U-Matrix-optimized embedding coordinates to the map}
 \usage{
-UMatrixCoords(dim = NULL, dist.method = NULL, distFn = function(x) x,
-  layoutFn = igraph::layout_with_kk)
+UMatrixCoords(
+  dim = NULL,
+  dist.method = NULL,
+  distFn = function(x) x,
+  layoutFn = igraph::layout_with_kk
+)
 }
 \arguments{
 \item{dim}{Dimension of the result (passed to \code{layoutFn})}

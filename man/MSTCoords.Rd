@@ -4,8 +4,12 @@
 \alias{MSTCoords}
 \title{Add MST-style embedding coordinates to the map}
 \usage{
-MSTCoords(dim = NULL, dist.method = NULL, distFn = function(x) x,
-  layoutFn = igraph::layout_with_kk)
+MSTCoords(
+  dim = NULL,
+  dist.method = NULL,
+  distFn = function(x) x,
+  layoutFn = igraph::layout_with_kk
+)
 }
 \arguments{
 \item{dim}{Dimension of the result (passed to layoutFn)}

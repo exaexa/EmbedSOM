@@ -4,15 +4,31 @@
 \alias{SOM}
 \title{Build a self-organizing map}
 \usage{
-SOM(data, xdim = 10, ydim = 10, zdim = NULL, batch = F,
-  rlen = 10, alphaA = c(0.05, 0.01),
-  radiusA = stats::quantile(nhbrdist, 0.67) * c(1, 0), alphaB = alphaA
-  * c(-negAlpha, -0.1 * negAlpha), radiusB = negRadius * radiusA,
-  negRadius = 1.33, negAlpha = 0.1, epochRadii = seq(radiusA[1],
-  radiusA[2], length.out = rlen), init = FALSE, initf = Initialize_PCA,
-  distf = 2, codes = NULL, importance = NULL, coordsFn = NULL,
-  nhbr.method = "maximum", noMapping = F, parallel = F,
-  threads = if (parallel) 0 else 1)
+SOM(
+  data,
+  xdim = 10,
+  ydim = 10,
+  zdim = NULL,
+  batch = F,
+  rlen = 10,
+  alphaA = c(0.05, 0.01),
+  radiusA = stats::quantile(nhbrdist, 0.67) * c(1, 0),
+  alphaB = alphaA * c(-negAlpha, -0.1 * negAlpha),
+  radiusB = negRadius * radiusA,
+  negRadius = 1.33,
+  negAlpha = 0.1,
+  epochRadii = seq(radiusA[1], radiusA[2], length.out = rlen),
+  init = FALSE,
+  initf = Initialize_PCA,
+  distf = 2,
+  codes = NULL,
+  importance = NULL,
+  coordsFn = NULL,
+  nhbr.method = "maximum",
+  noMapping = F,
+  parallel = F,
+  threads = if (parallel) 0 else 1
+)
 }
 \arguments{
 \item{data}{Matrix containing the training data}
@@ -55,7 +71,7 @@ SOM(data, xdim = 10, ydim = 10, zdim = NULL, batch = F,
 
 \item{coordsFn}{Function to generate/transform grid coordinates (e.g. \code{\link[=tSNECoords]{tSNECoords()}}). If \code{NULL} (default), the grid is the canonical SOM grid.}
 
-\item{nhbr.method}{Way of computing grid distances, passed as \code{method=} to \code{\link[stats:dist]{stats::dist()}} function. Defaults to \code{maximum} (square neighborhoods); use \code{euclidean} for round neighborhoods.}
+\item{nhbr.method}{Way of computing grid distances, passed as \verb{method=} to \code{\link[stats:dist]{stats::dist()}} function. Defaults to \code{maximum} (square neighborhoods); use \code{euclidean} for round neighborhoods.}
 
 \item{noMapping}{If TRUE, do not compute the mapping (default FALSE). Makes the process quicker by 1 \code{rlen}.}
 

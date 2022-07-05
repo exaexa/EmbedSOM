@@ -4,8 +4,13 @@
 \alias{MapDataToCodes}
 \title{Assign nearest node to each datapoint}
 \usage{
-MapDataToCodes(codes, data, distf = 2, parallel = F, threads = if
-  (parallel) 0 else 1)
+MapDataToCodes(
+  codes,
+  data,
+  distf = 2,
+  parallel = F,
+  threads = if (parallel) 0 else 1
+)
 }
 \arguments{
 \item{codes}{matrix with nodes of the SOM}

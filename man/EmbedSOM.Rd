@@ -4,10 +4,21 @@
 \alias{EmbedSOM}
 \title{Process the cells with SOM into a nice embedding}
 \usage{
-EmbedSOM(data = NULL, map = NULL, fsom = NULL, smooth = NULL,
-  k = NULL, adjust = NULL, importance = NULL, coordsFn = NULL,
-  coords = NULL, emcoords = NULL, emcoords.pow = 1, parallel = F,
-  threads = if (parallel) 0 else 1)
+EmbedSOM(
+  data = NULL,
+  map = NULL,
+  fsom = NULL,
+  smooth = NULL,
+  k = NULL,
+  adjust = NULL,
+  importance = NULL,
+  coordsFn = NULL,
+  coords = NULL,
+  emcoords = NULL,
+  emcoords.pow = 1,
+  parallel = F,
+  threads = if (parallel) 0 else 1
+)
 }
 \arguments{
 \item{data}{Data matrix with points that optionally overrides the one from \code{fsom$data}}

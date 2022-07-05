@@ -4,9 +4,16 @@
 \alias{ExprColors}
 \title{Generate colors for multi-color marker expression labeling in a single plot}
 \usage{
-ExprColors(exprs, base = exp(1), scale = 1, cutoff = 0, pow = NULL,
+ExprColors(
+  exprs,
+  base = exp(1),
+  scale = 1,
+  cutoff = 0,
+  pow = NULL,
   col = ClusterPalette(dim(exprs)[2], alpha = alpha),
-  nocolor = grDevices::rgb(0.75, 0.75, 0.75, alpha/2), alpha = 0.5)
+  nocolor = grDevices::rgb(0.75, 0.75, 0.75, alpha/2),
+  alpha = 0.5
+)
 }
 \arguments{
 \item{exprs}{Matrix-like object with marker expressions (extract it manually from your data)}

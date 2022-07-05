@@ -4,8 +4,12 @@
 \alias{GraphCoords}
 \title{Add Kamada-Kawai-generated embedding coordinates to the map}
 \usage{
-GraphCoords(dim = NULL, dist.method = NULL, distFn = function(x) x,
-  layoutFn = igraph::layout_with_kk)
+GraphCoords(
+  dim = NULL,
+  dist.method = NULL,
+  distFn = function(x) x,
+  layoutFn = igraph::layout_with_kk
+)
 }
 \arguments{
 \item{dim}{Dimension of the result (passed to \code{layoutFn})}

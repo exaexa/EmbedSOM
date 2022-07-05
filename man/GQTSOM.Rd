@@ -4,11 +4,23 @@
 \alias{GQTSOM}
 \title{Train a Growing Quadtree Self-Organizing Map}
 \usage{
-GQTSOM(data, init.dim = c(3, 3), target_codes = 100, rlen = 10,
-  radius = c(sqrt(sum(init.dim^2)), 0.5), epochRadii = seq(radius[1],
-  radius[2], length.out = rlen), coords = NULL, codes = NULL,
-  coordsFn = NULL, importance = NULL, distf = 2, nhbr.distf = 2,
-  noMapping = F, parallel = F, threads = if (parallel) 0 else 1)
+GQTSOM(
+  data,
+  init.dim = c(3, 3),
+  target_codes = 100,
+  rlen = 10,
+  radius = c(sqrt(sum(init.dim^2)), 0.5),
+  epochRadii = seq(radius[1], radius[2], length.out = rlen),
+  coords = NULL,
+  codes = NULL,
+  coordsFn = NULL,
+  importance = NULL,
+  distf = 2,
+  nhbr.distf = 2,
+  noMapping = F,
+  parallel = F,
+  threads = if (parallel) 0 else 1
+)
 }
 \arguments{
 \item{data}{Input data matrix}

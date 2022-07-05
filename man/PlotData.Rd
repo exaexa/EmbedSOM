@@ -4,9 +4,21 @@
 \alias{PlotData}
 \title{Export a data frame for plotting with marker intensities and density.}
 \usage{
-PlotData(embed, fsom, data = fsom$data, cols, names, normalize = cols,
-  pow = 0, sds = 1, vf = PlotId, density = "Density",
-  densBins = 256, densLimit = NULL, fdens = sqrt)
+PlotData(
+  embed,
+  fsom,
+  data = fsom$data,
+  cols,
+  names,
+  normalize = cols,
+  pow = 0,
+  sds = 1,
+  vf = PlotId,
+  density = "Density",
+  densBins = 256,
+  densLimit = NULL,
+  fdens = sqrt
+)
 }
 \arguments{
 \item{embed, fsom, data, cols}{The embedding data, columns to select}

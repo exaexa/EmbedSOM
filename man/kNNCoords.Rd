@@ -4,8 +4,12 @@
 \alias{kNNCoords}
 \title{Add KNN-topology-based embedding coordinates to the map}
 \usage{
-kNNCoords(k = 4, dim = NULL, distFn = function(x) x,
-  layoutFn = igraph::layout_with_kk)
+kNNCoords(
+  k = 4,
+  dim = NULL,
+  distFn = function(x) x,
+  layoutFn = igraph::layout_with_kk
+)
 }
 \arguments{
 \item{k}{Size of the neighborhoods (default 4)}
