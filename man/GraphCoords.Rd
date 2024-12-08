@@ -26,5 +26,5 @@ a function that transforms the map, usable as \code{coordsFn} parameter
 \description{
 This uses a complete graph on the map codebook, which brings overcrowding
 problems. It is therefore useful to transform the distances for avoiding that
-(e.g. by exponentiating them slightly).
+(e.g. by exponentiating them slightly using distFn function).
 }
