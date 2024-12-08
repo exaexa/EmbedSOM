@@ -202,7 +202,7 @@ MSTCoords <- function(dim=NULL, dist.method=NULL, distFn=function(x)x, layoutFn=
 #'
 #' This uses a complete graph on the map codebook, which brings overcrowding
 #' problems. It is therefore useful to transform the distances for avoiding that
-#' (e.g. by exponentiating them slightly).
+#' (e.g. by exponentiating them slightly using distFn function).
 #'
 #' @param dim Dimension of the result (passed to `layoutFn`)
 #' @param dist.method The method to compute distances, passed to [stats::dist()] as parameter `method`
@@ -217,7 +217,7 @@ GraphCoords <- function(dim=NULL, dist.method=NULL, distFn=function(x)x, layoutF
     map$grid <- layoutFn(
       dim=dim,
       igraph::graph_from_adjacency_matrix(mode='undirected', weighted=T,
-        distFn(as.matrix(stats::dist(map$codes)))))
+        distFn(as.matrix(stats::dist(map$codes, method=dist.method)))))
     map
   }
 }
