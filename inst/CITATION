@@ -1,11 +1,11 @@
 
 citHeader("To cite EmbedSOM in publications use:")
 
-citEntry(entry="article",
+bibentry("article",
          title = "Generalized EmbedSOM on quadtree-structured self-organizing maps.",
-         author = personList( as.person("Miroslav Kratochvíl"),
-                              as.person("Abhishek Koladiya"),
-                              as.person("Jiří Vondrášek")),
+         author = c( person("Miroslav", "Kratochvíl"),
+                     person("Abhishek", "Koladiya"),
+                     person("Jiří", "Vondrášek")),
          year = 2019,
          journal = "F1000Research",
          url = "https://f1000research.com/articles/8-2120",
