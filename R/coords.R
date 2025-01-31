@@ -250,4 +250,3 @@ kNNCoords <- function(k=4, dim=NULL, dist.method=NULL, distFn=function(x)x, layo
     map
   }
 }
-

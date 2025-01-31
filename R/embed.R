@@ -54,6 +54,11 @@ EmbedSOM <- function(data=NULL, map=NULL, fsom=NULL,
     } else map <- fsom$map
   }
 
+  if(!'distf' %in% names(map)) {
+    # assume euclidean distance if none is reported.
+    map$distf <- 2
+  }
+
   if(is.null(data)) {
     if(is.null(fsom)) {
       stop("You need to supply the data points.")
