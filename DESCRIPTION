@@ -19,7 +19,6 @@ Authors@R: c(person("Mirek", "Kratochvil",
 Depends: R (>= 3.2)
 Suggests: knitr, rmarkdown
 Imports:
-    FNN,
     ggplot2,
     igraph,
     Matrix,
@@ -33,6 +32,6 @@ Description: Provides a smooth mapping of multidimensional points into
 License: GPL (>= 3)
 URL: https://github.com/exaexa/EmbedSOM
 Encoding: UTF-8
-RoxygenNote: 7.1.1
+RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
