@@ -31,7 +31,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <R_ext/PrtUtil.h>
 #include <R_ext/Rdynload.h>
 #include <Rmath.h>
 
