@@ -31,9 +31,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <R_ext/Rdynload.h>
-#include <Rmath.h>
-
 #define RANDIN GetRNGstate()
 #define RANDOUT PutRNGstate()
 #define UNIF unif_rand()
